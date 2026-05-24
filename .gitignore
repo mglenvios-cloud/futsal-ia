@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.env
+.env.local
+*.db
+*.db-wal
+*.db-shm
+data/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+*.err
+*.log
+server.log
+frontend/.env
+frontend/.env.local

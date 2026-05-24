@@ -1,0 +1,35 @@
+{
+  "name": "futsal-ia-backend",
+  "version": "1.0.0",
+  "description": "Backend for Futsal Argentino AFA AI Platform",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node seed-prod.js && node src/server.js",
+    "dev": "nodemon src/server.js",
+    "scrape": "node src/scrapers/index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.9.1",
+    "@supabase/supabase-js": "^2.106.1",
+    "axios": "^1.6.2",
+    "better-sqlite3": "^12.10.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0",
+    "multer": "^2.1.1",
+    "node-cron": "^3.0.3",
+    "openai": "^4.20.1",
+    "pg": "^8.21.0",
+    "playwright": "^1.40.1",
+    "puppeteer": "^21.6.1",
+    "socket.io": "^4.7.4",
+    "telegraf": "^4.15.3",
+    "web-push": "^3.6.6",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
