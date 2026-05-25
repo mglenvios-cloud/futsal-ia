@@ -165,15 +165,21 @@ export default function MatchDetailPage() {
   }, [id]);
 
   const finalizarPartido = async () => {
-    await api.matches.update(String(id), { status: 'finished' });
-    const data = await api.matches.detail(String(id));
-    setMatch(data);
+    try {
+      await api.matches.update(String(id), { status: 'finished' });
+      const data = await api.matches.detail(String(id));
+      setMatch(data);
+      setGoals(data.goals || []);
+    } catch (e) { console.error('Error finalizar:', e); }
   };
 
   const marcarVivo = async () => {
-    await api.matches.update(String(id), { status: 'live', minute: 1 });
-    const data = await api.matches.detail(String(id));
-    setMatch(data);
+    try {
+      await api.matches.update(String(id), { status: 'live', minute: 1 });
+      const data = await api.matches.detail(String(id));
+      setMatch(data);
+      setGoals(data.goals || []);
+    } catch (e) { console.error('Error iniciar:', e); }
   };
 
   const addGoal = async (e) => {
@@ -186,11 +192,12 @@ export default function MatchDetailPage() {
         minute: parseInt(newGoalMinute),
         type: newGoalType,
       });
-      if (res.goal) setGoals(prev => [...prev, res.goal]);
-      if (res.match) setMatch(res.match);
+      setGoals(prev => [...prev, res.goal]);
+      const fresh = await api.matches.detail(String(id));
+      setMatch(fresh);
       setNewGoalPlayer('');
       setNewGoalMinute('');
-    } catch {}
+    } catch (e) { console.error('Error addGoal:', e); }
   };
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>;
@@ -331,29 +338,28 @@ export default function MatchDetailPage() {
       </div>
 
       {/* Stats */}
-      {match.status === 'live' && (
-        <div className="card-gradient overflow-hidden">
-          <div className="p-5">
-            <h3 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span>📊</span> Estadísticas del Partido
-            </h3>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="stat-card">
-                <p className="stat-value">{(match.home_yellow || 0) + (match.away_yellow || 0)}</p>
-                <p className="stat-label">Tarjetas Amarillas</p>
-              </div>
-              <div className="stat-card">
-                <p className="stat-value">{(match.home_red || 0) + (match.away_red || 0)}</p>
-                <p className="stat-label">Tarjetas Rojas</p>
-              </div>
-              <div className="stat-card">
-                <p className="stat-value">{(match.home_fouls || 0) + (match.away_fouls || 0)}</p>
-                <p className="stat-label">Faltas</p>
-              </div>
+      <div className="card-gradient overflow-hidden">
+        <div className="p-5">
+          <h3 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+            <span>📊</span> Estadísticas
+            {match.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
+          </h3>
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="stat-card">
+              <p className="stat-value text-yellow-400">{(match.home_yellow || 0) + (match.away_yellow || 0)}</p>
+              <p className="stat-label">Amarillas</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-value text-red-400">{(match.home_red || 0) + (match.away_red || 0)}</p>
+              <p className="stat-label">Rojas</p>
+            </div>
+            <div className="stat-card">
+              <p className="stat-value text-orange-400">{(match.home_fouls || 0) + (match.away_fouls || 0)}</p>
+              <p className="stat-label">Faltas</p>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Streams */}
       {(match.stream_link || match.youtube_link) && (

@@ -1,6 +1,46 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const db = require('../database/supabase');
+const sqlite = require('../database/sqlite');
+
+// Normalize team name for fuzzy matching
+function normalize(str) {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .replace(/[áäàâ]/g, 'a').replace(/[éëèê]/g, 'e').replace(/[íïìî]/g, 'i').replace(/[óöòô]/g, 'o').replace(/[úüùû]/g, 'u').replace(/[ñ]/g, 'n')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function simplify(name) {
+  let n = normalize(name);
+  const subs = {
+    'club': '', 'asociacion': '', 'centro': '', 'deportivo': '', 'social': '', 'sportivo': '',
+    'atletico': '', 'atl': '',
+    'femenino': '', 'fem': '', 'masculino': '', 'masc': '',
+    'dep': '', 'nva': 'nueva', 'nvo': 'nuevo', 'est': 'estrella',
+    'prov': 'provincial', 'amer': 'america', 'sarmiento': '',
+    'jrs': 'juniors', 'jr': 'juniors',
+    'jj': '', 'j': '',
+    'ctral': 'central', 'ctro': 'central',
+    'sp': '', 'sportivo': '',
+    'def': 'defensores',
+    't': '',
+    'juvenil': '', 'juventud': '',
+    'de': '', 'del': '', 'la': '', 'el': '', 'los': '', 'las': '', 'y': '',
+    'vs': '', 'libre': '',
+  };
+  for (const [from, to] of Object.entries(subs)) {
+    n = n.replace(new RegExp('\\b' + from + '\\b', 'g'), to);
+  }
+  return n.replace(/\s+/g, ' ').trim();
+}
+
+function fuzzyMatch(name1, name2) {
+  return simplify(name1) === simplify(name2);
+}
 
 const LEAGUE_MAP = [
   { slug: 'primeraA/primera', league: 'primera-a', name: 'Primera A' },
@@ -151,7 +191,23 @@ async function scrapeDivision(slug, league) {
     await db.upsertStandings(standings);
   }
   const fixtures = parseFixtures(html, league);
+  // Load all existing matches for this league to compare with fuzzy matching
+  const existingMatches = league ? sqlite.conn.prepare("SELECT id, home_team, away_team, home_score, away_score FROM matches WHERE league = ?").all(league) : [];
   for (const match of fixtures) {
+    // Try fuzzy match against existing matches
+    let existing = null;
+    for (const existingMatch of existingMatches) {
+      if (fuzzyMatch(existingMatch.home_team, match.home_team) && fuzzyMatch(existingMatch.away_team, match.away_team)) {
+        existing = existingMatch;
+        break;
+      }
+    }
+    if (existing) {
+      if ((match.home_score !== null || match.away_score !== null) && (existing.home_score !== match.home_score || existing.away_score !== match.away_score)) {
+        sqlite.conn.prepare("UPDATE matches SET home_score = ?, away_score = ?, status = ? WHERE id = ?").run(match.home_score, match.away_score, match.status, existing.id);
+      }
+      continue;
+    }
     await db.upsertMatch(match);
   }
   return { standings: standings.length, fixtures: fixtures.length };

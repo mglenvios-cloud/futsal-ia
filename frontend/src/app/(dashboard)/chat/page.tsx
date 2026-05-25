@@ -63,16 +63,21 @@ export default function ChatPage() {
             <div className={cn(
               'max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed',
               msg.role === 'user'
-                ? 'bg-gradient-to-r from-primary-500/20 to-primary-600/10 text-white border border-primary-500/30'
-                : 'bg-white/[0.06] text-white/90 border border-white/[0.06] backdrop-blur-sm'
-            )}>
+                ? 'bg-gradient-to-r from-primary-500/20 to-primary-600/10 border border-primary-500/30'
+                : 'border border-white/[0.06] backdrop-blur-sm'
+            )}
+              style={{
+                background: msg.role === 'user' ? undefined : 'var(--chat-ai-bg)',
+                color: msg.role === 'user' ? 'var(--chat-user-text)' : 'var(--chat-ai-text)',
+              }}
+            >
               {msg.content}
             </div>
           </div>
         ))}
           {loading && (
           <div className="flex justify-start">
-            <div className="bg-white/[0.06] border border-white/[0.06] backdrop-blur-sm rounded-2xl px-4 py-3">
+            <div className="rounded-2xl px-4 py-3 border border-white/[0.06] backdrop-blur-sm" style={{ background: 'var(--chat-ai-bg)' }}>
               <div className="flex gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '150ms' }} />

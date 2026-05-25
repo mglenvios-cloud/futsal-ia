@@ -77,13 +77,14 @@ module.exports = (io) => {
       }
 
       const updated = await db.updateMatch(req.params.id, updates);
+      const goals = await db.getMatchGoals(req.params.id);
 
       if (io) {
-        io.to(`match:${req.params.id}`).emit('match:update', { ...updated, timestamp: new Date().toISOString() });
+        io.to(`match:${req.params.id}`).emit('match:update', { ...updated, goals, timestamp: new Date().toISOString() });
         io.to('live:all').emit('live:update', { match: updated });
       }
 
-      res.json(updated);
+      res.json({ ...updated, goals });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

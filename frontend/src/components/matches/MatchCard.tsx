@@ -5,6 +5,10 @@ import Link from 'next/link';
 
 export function MatchCard({ match, compact = false }: { match: any; compact?: boolean }) {
   const status = getMatchStatus(match.status, match.minute);
+  const isFinished = match.status === 'finished';
+  const homeWon = isFinished && match.home_score > match.away_score;
+  const awayWon = isFinished && match.away_score > match.home_score;
+  const drawn = isFinished && match.home_score === match.away_score;
 
   return (
     <Link
@@ -13,6 +17,7 @@ export function MatchCard({ match, compact = false }: { match: any; compact?: bo
         'glass-hover flex gap-4 transition-all group rounded-xl relative',
         match.status === 'live' && 'live-border border-2',
         (match.stream_link || match.youtube_link) && 'border-l-2 border-l-orange-500/40',
+        isFinished && 'border-l-2 border-l-green-500/30',
         compact ? 'p-3' : 'p-4'
       )}
     >
@@ -27,18 +32,19 @@ export function MatchCard({ match, compact = false }: { match: any; compact?: bo
         {!compact && match.league && (
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-[10px] uppercase tracking-wider text-surface-500 font-semibold">{getLeagueName(match.league)}</span>
+            {match.round && <span className="text-[10px] text-surface-500/60">{match.round}</span>}
             {match.venue && <span className="text-[10px] text-surface-500/60">{match.venue}</span>}
           </div>
         )}
         <div className="flex items-center gap-3">
-          <div className="flex-1 text-right truncate">
-            <p className={cn('font-semibold truncate group-hover:text-primary-400 transition-colors', compact ? 'text-xs' : 'text-sm')}>{match.home_team}</p>
+          <div className={cn('flex-1 text-right truncate', homeWon && 'font-bold')}>
+            <p className={cn('truncate group-hover:text-primary-400 transition-colors', compact ? 'text-xs' : 'text-sm', homeWon && 'text-green-400')}>{match.home_team}</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className={cn(
               'font-black font-mono tabular-nums min-w-[24px] text-center',
               compact ? 'text-base' : 'text-lg',
-              match.status === 'live' && match.home_score > match.away_score ? 'text-primary-400' : 'text-white'
+              homeWon ? 'text-green-400' : drawn ? 'text-amber-400' : 'text-white'
             )}>
               {match.home_score ?? '-'}
             </span>
@@ -46,15 +52,31 @@ export function MatchCard({ match, compact = false }: { match: any; compact?: bo
             <span className={cn(
               'font-black font-mono tabular-nums min-w-[24px] text-center',
               compact ? 'text-base' : 'text-lg',
-              match.status === 'live' && match.away_score > match.home_score ? 'text-primary-400' : 'text-white'
+              awayWon ? 'text-green-400' : drawn ? 'text-amber-400' : 'text-white'
             )}>
               {match.away_score ?? '-'}
             </span>
           </div>
-          <div className="flex-1 truncate">
-            <p className={cn('font-semibold truncate group-hover:text-primary-400 transition-colors', compact ? 'text-xs' : 'text-sm')}>{match.away_team}</p>
+          <div className={cn('flex-1 truncate', awayWon && 'font-bold')}>
+            <p className={cn('truncate group-hover:text-primary-400 transition-colors', compact ? 'text-xs' : 'text-sm', awayWon && 'text-green-400')}>{match.away_team}</p>
           </div>
         </div>
+
+        {isFinished && match.goals && match.goals.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {match.goals.slice(0, 4).map(g => (
+              <span key={g.id} className={cn(
+                'text-[10px] px-1.5 py-0.5 rounded font-medium',
+                g.team === 'home' ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'
+              )}>
+                ⚽ {g.player_name} {g.minute}'
+                {g.type === 'penalty' ? ' (P)' : ''}
+                {g.type === 'own_goal' ? ' (EC)' : ''}
+              </span>
+            ))}
+            {match.goals.length > 4 && <span className="text-[10px] text-surface-500">+{match.goals.length - 4}</span>}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -74,9 +96,16 @@ export function MatchCard({ match, compact = false }: { match: any; compact?: bo
           {match.stream_link && match.youtube_link && (
             <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded">LPF+YT</span>
           )}
-          {status.dot === 'live' && <span className="live-dot" />}
+          {match.status === 'live' && <span className="live-dot" />}
+          {isFinished && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
         </div>
-        {!compact && <span className={cn('text-xs font-semibold', status.color)}>{status.label}</span>}
+        <span className={cn(
+          'text-xs font-semibold',
+          isFinished && 'text-green-400/70',
+          status.color
+        )}>
+          {isFinished ? 'FINAL' : status.label}
+        </span>
       </div>
     </Link>
   );

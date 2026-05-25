@@ -14,6 +14,10 @@
   --text-muted: #64748b;
   --border-subtle: rgba(255, 255, 255, 0.05);
   --border-glass: rgba(255, 255, 255, 0.06);
+  --chat-ai-bg: rgba(30, 41, 59, 0.7);
+  --chat-ai-text: #e2e8f0;
+  --chat-user-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.25), rgba(234, 88, 12, 0.15));
+  --chat-user-text: #fff7ed;
 }
 
 [data-theme="light"] {
@@ -24,6 +28,10 @@
   --text-muted: #64748b;
   --border-subtle: rgba(0, 0, 0, 0.06);
   --border-glass: rgba(0, 0, 0, 0.08);
+  --chat-ai-bg: rgba(255, 255, 255, 0.8);
+  --chat-ai-text: #1e293b;
+  --chat-user-bg: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.08));
+  --chat-user-text: #431407;
 }
 
 body {
@@ -232,4 +240,31 @@ main {
 
 .live-border {
   animation: live-border 2s ease-in-out infinite;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(249, 115, 22, 0.1); }
+  50% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.2); }
+}
+
+.glow-orange {
+  animation: pulse-glow 3s ease-in-out infinite;
 }
