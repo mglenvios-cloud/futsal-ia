@@ -15,3 +15,4 @@ Thumbs.db
 server.log
 frontend/.env
 frontend/.env.local
+_*.js
