@@ -4,57 +4,48 @@ const path = require('path');
 
 const DB_PATH = path.join(__dirname, 'data', 'futsal.db');
 
-function main() {
-  // Check if DB exists and has data
+async function main() {
   if (fs.existsSync(DB_PATH)) {
-    try {
-      const db = require('better-sqlite3')(DB_PATH);
-      const count = db.prepare('SELECT COUNT(*) as c FROM teams').get();
-      db.close();
-      if (count.c > 0) {
-        console.log('DB exists with', count.c, 'teams');
-        runEnhancements();
-        return;
-      }
-    } catch(e) {}
+    const sqlite = require('./src/database/sqlite');
+    await sqlite.init();
+    const teams = sqlite.getTeams({});
+    if (teams.length > 0) {
+      console.log('DB exists with', teams.length, 'teams');
+      await runEnhancements(sqlite);
+      return;
+    }
   }
 
-  // Seed the database
   console.log('DB empty or missing, running seed...');
   execSync('node seed-reales-2026.js', { stdio: 'inherit' });
   console.log('Seed complete');
-  runEnhancements();
+  const sqlite = require('./src/database/sqlite');
+  await sqlite.init();
+  await runEnhancements(sqlite);
   console.log('All data ready!');
 }
 
-function runEnhancements() {
-  const db2 = require('better-sqlite3')(DB_PATH);
-  try {
-    // Check if players exist
-    const playerCount = db2.prepare('SELECT COUNT(*) as c FROM players').get().c;
-    const streamCount = db2.prepare("SELECT COUNT(*) as c FROM matches WHERE length(stream_link) > 0 OR length(youtube_link) > 0").get().c;
-    const teamCount = db2.prepare('SELECT COUNT(*) as c FROM teams').get().c;
+async function runEnhancements(sqlite) {
+  const teams = sqlite.getTeams({});
+  const matches = sqlite.getMatches({ limit: 1 });
+  const playerCount = sqlite.getPlayers(teams[0]?.id)?.length || 0;
+  const streamCount = matches.filter(m => m.stream_link || m.youtube_link).length;
+  const teamCount = teams.length;
 
-    console.log('Enhancements check:', { teams: teamCount, players: playerCount, streams: streamCount });
+  console.log('Enhancements check:', { teams: teamCount, players: playerCount, streams: streamCount });
 
-    // Seed players if missing
-    if (playerCount === 0 && teamCount > 0) {
-      console.log('Adding players...');
-      seedPlayers(db2);
-    }
-
-    // Assign stream links if missing
-    if (streamCount === 0 && teamCount > 0) {
-      console.log('Assigning stream links...');
-      assignStreamLinks(db2);
-    }
-  } catch(e) {
-    console.error('Enhancement error:', e.message);
+  if (playerCount === 0 && teamCount > 0) {
+    console.log('Adding players...');
+    seedPlayers(sqlite, teams);
   }
-  db2.close();
+
+  if (streamCount === 0 && teamCount > 0) {
+    console.log('Assigning stream links...');
+    assignStreamLinks(sqlite, matches);
+  }
 }
 
-function seedPlayers(db) {
+function seedPlayers(db, teams) {
   const posiciones = ['Arquero', 'Cierre', 'Ala Derecho', 'Ala Izquierdo', 'Pívot'];
   const nombres = [
     'Lucas Martínez', 'Matías Gómez', 'Nicolás Fernández', 'Santiago López', 'Facundo Rodríguez',
@@ -66,7 +57,6 @@ function seedPlayers(db) {
     'Damián Ríos', 'Leonardo Correa', 'Ezequiel Ferreyra', 'Cristian Mansilla', 'Rafael Cáceres',
     'Nahuel Agüero', 'Marcos Ojeda', 'Darío Roldán', 'Luis Soria', 'Hugo Castillo',
   ];
-  const teams = db.prepare('SELECT id, name FROM teams').all();
   for (const team of teams) {
     const numPlayers = 6 + Math.floor(Math.random() * 4);
     const usedNames = new Set();
@@ -74,23 +64,24 @@ function seedPlayers(db) {
       let name;
       do { name = nombres[Math.floor(Math.random() * nombres.length)]; } while (usedNames.has(name));
       usedNames.add(name);
-      db.prepare(`INSERT INTO players (team_id, name, position, number, nationality, age, goals, assists, yellow_cards, red_cards, matches_played)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
-        team.id, name, posiciones[Math.floor(Math.random() * posiciones.length)],
-        1 + Math.floor(Math.random() * 20),
-        Math.random() > 0.9 ? ['Brasil', 'Uruguay', 'Paraguay'][Math.floor(Math.random() * 3)] : 'Argentina',
-        20 + Math.floor(Math.random() * 15),
-        Math.floor(Math.random() * 8), Math.floor(Math.random() * 5),
-        Math.floor(Math.random() * 4), Math.random() > 0.8 ? 1 : 0,
-        5 + Math.floor(Math.random() * 20)
-      );
+      db.addPlayer({
+        team_id: team.id, name,
+        position: posiciones[Math.floor(Math.random() * posiciones.length)],
+        number: 1 + Math.floor(Math.random() * 20),
+        nationality: Math.random() > 0.9 ? ['Brasil', 'Uruguay', 'Paraguay'][Math.floor(Math.random() * 3)] : 'Argentina',
+        age: 20 + Math.floor(Math.random() * 15),
+        goals: Math.floor(Math.random() * 8),
+        assists: Math.floor(Math.random() * 5),
+        yellow_cards: Math.floor(Math.random() * 4),
+        red_cards: Math.random() > 0.8 ? 1 : 0,
+        matches_played: 5 + Math.floor(Math.random() * 20),
+      });
     }
   }
-  console.log('Players seeded:', db.prepare('SELECT COUNT(*) as c FROM players').get().c);
+  console.log('Players seeded:', db.getPlayers(teams[0]?.id).length);
 }
 
-function assignStreamLinks(db) {
-  const matches = db.prepare('SELECT id, league, home_team, away_team FROM matches').all();
+function assignStreamLinks(db, matches) {
   for (const m of matches) {
     const isPrimeraA = m.league === 'primera-a' || m.league === 'femenino-a';
     const updates = {};
@@ -100,11 +91,13 @@ function assignStreamLinks(db) {
       updates.youtube_link = `https://www.youtube.com/watch?v=${m.home_team?.toLowerCase().replace(/[^a-z0-9]/g, '')}-vs-${m.away_team?.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
     }
     if (Object.keys(updates).length > 0) {
-      const set = Object.keys(updates).map(k => `"${k}" = ?`).join(', ');
-      db.prepare(`UPDATE matches SET ${set} WHERE id = ?`).run(...Object.values(updates), m.id);
+      db.updateMatch(m.id, updates);
     }
   }
   console.log('Stream links assigned to', matches.length, 'matches');
 }
 
-main();
+main().catch(err => {
+  console.error('Seed failed:', err);
+  process.exit(1);
+});

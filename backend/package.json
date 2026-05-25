@@ -12,7 +12,7 @@
     "@anthropic-ai/sdk": "^0.9.1",
     "@supabase/supabase-js": "^2.106.1",
     "axios": "^1.6.2",
-    "better-sqlite3": "^12.10.0",
+    "sql.js": "^1.11.0",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

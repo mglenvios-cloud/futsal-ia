@@ -2,6 +2,8 @@ const sqlite = require('./src/database/sqlite');
 const fs = require('fs');
 const path = require('path');
 
+async function main() {
+await sqlite.init();
 console.log('Poblando DB con datos REALES del Futsal AFA 2025...');
 
 const REAL_TEAMS = {
@@ -290,3 +292,6 @@ sqlite.upsertTopScorers(realScorers);
 console.log(`Insertados ${realScorers.length} goleadores reales`);
 
 console.log('Base de datos poblada con datos REALES del Futsal AFA 2025');
+}
+
+main().catch(err => { console.error(err); process.exit(1); });

@@ -93,9 +93,22 @@ cron.schedule('*/5 * * * *', async () => {
   }
 });
 
+const sqlite = require('./database/sqlite');
+
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
-  console.log(`Futsal IA Backend running on port ${PORT}`);
-  console.log(`WebSocket server ready`);
-  scraperService.initialScrape();
+
+async function start() {
+  await sqlite.init();
+  console.log('Database initialized');
+
+  server.listen(PORT, () => {
+    console.log(`Futsal IA Backend running on port ${PORT}`);
+    console.log(`WebSocket server ready`);
+    scraperService.initialScrape();
+  });
+}
+
+start().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });

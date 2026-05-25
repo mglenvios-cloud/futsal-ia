@@ -1,6 +1,8 @@
 const sqlite = require('./src/database/sqlite');
 const path = require('path');
 
+async function main() {
+await sqlite.init();
 console.log('Poblando DB con datos REALES del Futsal AFA 2026 (desde ParenLaPelota)...');
 
 const DIVISIONS = {
@@ -435,3 +437,6 @@ sqlite.upsertTopScorers(realScorers);
 console.log(`Insertados ${realScorers.length} goleadores 2026`);
 
 console.log('Base de datos poblada con datos REALES del Futsal AFA 2026');
+}
+
+main().catch(err => { console.error(err); process.exit(1); });
