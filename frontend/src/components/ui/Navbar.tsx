@@ -1,10 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useTheme } from './ThemeProvider';
+import { AdBanner } from './AdBanner';
+import { LogoCanvas } from './LogoCanvas';
+
+const navLinks = [
+  { label: 'En Vivo', href: '/live' },
+  { label: 'Partidos', href: '/partidos' },
+  { label: 'Posiciones', href: '/posiciones' },
+  { label: 'Fixture', href: '/partidos?tab=fixture' },
+  { label: 'Equipos', href: '/equipos' },
+  { label: 'Chat IA', href: '/chat' },
+  { label: 'Videos', href: '/videos' },
+];
 
 const leagues = [
   { label: 'Primera A', href: '/?league=primera-a' },
@@ -14,16 +26,6 @@ const leagues = [
   { label: 'Primera D ZB', href: '/?league=primera-d-zb' },
   { label: 'Femenino', href: '/?league=femenino-a' },
   { label: 'Copa Argentina', href: '/?league=copa-argentina' },
-];
-
-const navLinks = [
-  { label: 'En Vivo', href: '/live' },
-  { label: 'Partidos', href: '/partidos' },
-  { label: 'Posiciones', href: '/posiciones' },
-  { label: 'Equipos', href: '/equipos' },
-  { label: 'Chat IA', href: '/chat' },
-  { label: 'Videos', href: '/videos' },
-  { label: 'H2H', href: '/h2h' },
 ];
 
 export function Navbar() {
@@ -46,11 +48,9 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-xs font-black text-white shadow-lg shadow-orange-500/20">
-              FA
-            </div>
+            <LogoCanvas size={36} />
             <span className="text-lg font-black tracking-tight">
-              <span className="text-gradient">Futsal</span><span className="text-white/90"> Argentino</span>
+              <span className="text-gradient">Futsal</span><span className="text-white/90"> Online</span>
             </span>
           </Link>
 

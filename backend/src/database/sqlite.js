@@ -14,37 +14,29 @@ class StatementWrapper {
 
   get(...params) {
     if (params.length > 0) this.stmt.bind(params);
-    try {
-      if (this.stmt.step()) {
-        const row = this.stmt.getAsObject();
-        return row;
-      }
-      return undefined;
-    } finally {
-      this.stmt.free();
+    if (this.stmt.step()) {
+      const row = this.stmt.getAsObject();
+      this.stmt.reset();
+      return row;
     }
+    this.stmt.reset();
+    return undefined;
   }
 
   all(...params) {
     if (params.length > 0) this.stmt.bind(params);
     const rows = [];
-    try {
-      while (this.stmt.step()) {
-        rows.push(this.stmt.getAsObject());
-      }
-    } finally {
-      this.stmt.free();
+    while (this.stmt.step()) {
+      rows.push(this.stmt.getAsObject());
     }
+    this.stmt.reset();
     return rows;
   }
 
   run(...params) {
     if (params.length > 0) this.stmt.bind(params);
-    try {
-      this.stmt.step();
-    } finally {
-      this.stmt.free();
-    }
+    this.stmt.step();
+    this.stmt.reset();
     return this;
   }
 }
@@ -151,6 +143,19 @@ async function initSchema() {
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
+  conn.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_matches_source ON matches(source_id, source)`);
+
+  // Deduplicate matches - keep only the latest row per (source_id, source)
+  const dupCount = prepare("SELECT COUNT(*) - COUNT(DISTINCT source_id || '-' || source) FROM matches").get();
+  if (dupCount && dupCount[Object.keys(dupCount)[0]] > 0) {
+    prepare(`
+      DELETE FROM matches WHERE id NOT IN (
+        SELECT MIN(id) FROM matches GROUP BY source_id, source
+      )
+    `).run();
+    saveDb();
+  }
+
   conn.run(`
     CREATE TABLE IF NOT EXISTS standings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -278,6 +283,10 @@ const api = {
   async init() {
     this.conn = await initSchema();
     return this;
+  },
+
+  prepare(sql) {
+    return new StatementWrapper(this.conn.prepare(sql));
   },
 
   getMatches({ league, date, team, status, limit = 50, offset = 0 } = {}) {

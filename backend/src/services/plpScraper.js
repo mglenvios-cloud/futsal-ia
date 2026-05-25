@@ -192,7 +192,7 @@ async function scrapeDivision(slug, league) {
   }
   const fixtures = parseFixtures(html, league);
   // Load all existing matches for this league to compare with fuzzy matching
-  const existingMatches = league ? sqlite.conn.prepare("SELECT id, home_team, away_team, home_score, away_score FROM matches WHERE league = ?").all(league) : [];
+  const existingMatches = league ? sqlite.prepare("SELECT id, home_team, away_team, home_score, away_score FROM matches WHERE league = ?").all(league) : [];
   for (const match of fixtures) {
     // Try fuzzy match against existing matches
     let existing = null;
@@ -204,7 +204,7 @@ async function scrapeDivision(slug, league) {
     }
     if (existing) {
       if ((match.home_score !== null || match.away_score !== null) && (existing.home_score !== match.home_score || existing.away_score !== match.away_score)) {
-        sqlite.conn.prepare("UPDATE matches SET home_score = ?, away_score = ?, status = ? WHERE id = ?").run(match.home_score, match.away_score, match.status, existing.id);
+        sqlite.prepare("UPDATE matches SET home_score = ?, away_score = ?, status = ? WHERE id = ?").run(match.home_score, match.away_score, match.status, existing.id);
       }
       continue;
     }

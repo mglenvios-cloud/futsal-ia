@@ -87,7 +87,7 @@ function slugify(name) {
 }
 
 // Insert all real teams
-const insertTeam = sqlite.conn.prepare('INSERT OR IGNORE INTO teams (name, slug, league, venue) VALUES (?, ?, ?, ?)');
+const insertTeam = sqlite.prepare('INSERT OR IGNORE INTO teams (name, slug, league, venue) VALUES (?, ?, ?, ?)');
 let teamCount = 0;
 for (const [league, names] of Object.entries(REAL_TEAMS)) {
   for (const name of names) {
@@ -178,7 +178,7 @@ const realFixtures = [
   { home: 'San Lorenzo Fem', away: 'Boca Juniors Fem', league: 'femenino-a', round: 12 },
 ];
 
-const insertMatch = sqlite.conn.prepare(`INSERT OR IGNORE INTO matches 
+const insertMatch = sqlite.prepare(`INSERT OR IGNORE INTO matches 
   (source_id, source, league, home_team, away_team, home_score, away_score, status, minute, date, time, venue, round, stream_link)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 

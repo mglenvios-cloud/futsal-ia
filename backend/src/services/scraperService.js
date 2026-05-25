@@ -2,18 +2,20 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const db = require('../database/supabase');
 const plpScraper = require('./plpScraper');
+const pasionFutsalScraper = require('./pasionFutsalScraper');
 
 class ScraperService {
   constructor() {
     this.io = null;
     this.sources = [
       { name: 'parenlapelotafutsal', url: 'https://parenlapelotafutsal.com.ar', enabled: true },
-      { name: 'futsalplay', url: 'https://futsalplay.com.ar', enabled: true },
-      { name: 'afa', url: 'https://www.afa.com.ar', enabled: true },
-      { name: 'promiedos', url: 'https://www.promiedos.com.ar/futsal', enabled: true },
-      { name: 'segundopalo', url: 'https://www.segundopalo.com', enabled: true },
-      { name: 'sofascore', url: 'https://www.sofascore.com', enabled: true },
-      { name: 'flashscore', url: 'https://www.flashscore.com.ar/futbol-sala/', enabled: true },
+      { name: 'pasionfutsal', url: 'https://pasionfutsal.com.ar', enabled: true },
+      { name: 'futsalplay', url: 'https://futsalplay.com.ar', enabled: false },
+      { name: 'afa', url: 'https://www.afa.com.ar', enabled: false },
+      { name: 'promiedos', url: 'https://www.promiedos.com.ar/futsal', enabled: false },
+      { name: 'segundopalo', url: 'https://www.segundopalo.com', enabled: false },
+      { name: 'sofascore', url: 'https://www.sofascore.com', enabled: false },
+      { name: 'flashscore', url: 'https://www.flashscore.com.ar/futbol-sala/', enabled: false },
     ];
     this.leagues = [
       { id: 'primera-a', name: 'Primera A', slug: 'primeraA' },
@@ -41,6 +43,7 @@ class ScraperService {
     console.log('Scraping ALL sources...');
     const results = await Promise.allSettled([
       this.scrapeParenLaPelota(),
+      this.scrapePasionFutsal(),
       this.scrapeFutsalPlay(),
       this.scrapeAFA(),
       this.scrapePromiedos(),
@@ -67,6 +70,15 @@ class ScraperService {
     const results = await plpScraper.scrapeAll();
     const total = Object.values(results).reduce((a, r) => ({ standings: a.standings + r.standings, fixtures: a.fixtures + r.fixtures }), { standings: 0, fixtures: 0 });
     console.log(`ParenLaPelota: ${total.standings} standings, ${total.fixtures} fixtures`);
+  }
+
+  async scrapePasionFutsal() {
+    try {
+      const results = await pasionFutsalScraper.scrapeAll();
+      console.log(`PasionFutsal: ${results.standings} standings, ${results.matches} matches`);
+    } catch (err) {
+      console.error(`PasionFutsal error: ${err.message}`);
+    }
   }
 
   async scrapeFutsalPlay() {

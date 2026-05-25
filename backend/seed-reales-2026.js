@@ -346,13 +346,13 @@ function getLeagueKey(teamName) {
 }
 
 console.log('Limpiando datos 2025 anteriores...');
-sqlite.conn.prepare("DELETE FROM matches WHERE source = 'real'").run();
-sqlite.conn.prepare("DELETE FROM standings WHERE 1=1").run();
-sqlite.conn.prepare("DELETE FROM top_scorers WHERE 1=1").run();
-sqlite.conn.prepare("DELETE FROM teams WHERE 1=1").run();
+sqlite.prepare("DELETE FROM matches WHERE source = 'real' OR source = 'seed-2026'").run();
+sqlite.prepare("DELETE FROM standings WHERE 1=1").run();
+sqlite.prepare("DELETE FROM top_scorers WHERE 1=1").run();
+sqlite.prepare("DELETE FROM teams WHERE 1=1").run();
 console.log('Datos anteriores eliminados');
 
-const insertTeam = sqlite.conn.prepare('INSERT OR IGNORE INTO teams (name, slug, league, venue) VALUES (?, ?, ?, ?)');
+const insertTeam = sqlite.prepare('INSERT OR IGNORE INTO teams (name, slug, league, venue) VALUES (?, ?, ?, ?)');
 const allTeams = getAllTeamNames();
 let teamCount = 0;
 for (const name of allTeams) {
@@ -362,7 +362,7 @@ for (const name of allTeams) {
 }
 console.log(`Insertados ${teamCount} equipos 2026`);
 
-const insertMatch = sqlite.conn.prepare(`INSERT INTO matches 
+const insertMatch = sqlite.prepare(`INSERT INTO matches 
   (source_id, source, league, home_team, away_team, home_score, away_score, status, date, round, stream_link)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
 

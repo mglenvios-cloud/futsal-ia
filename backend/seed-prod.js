@@ -27,7 +27,8 @@ async function main() {
 
 async function runEnhancements(sqlite) {
   const teams = sqlite.getTeams({});
-  const matches = sqlite.getMatches({ limit: 1 });
+  const matchesResult = sqlite.getMatches({ limit: 1 });
+  const matches = matchesResult.data || matchesResult;
   const playerCount = sqlite.getPlayers(teams[0]?.id)?.length || 0;
   const streamCount = matches.filter(m => m.stream_link || m.youtube_link).length;
   const teamCount = teams.length;
