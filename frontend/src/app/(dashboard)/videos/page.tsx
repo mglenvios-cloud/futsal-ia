@@ -36,7 +36,7 @@ function UploadSection({ onUploaded }) {
       if (title) form.append('title', title);
       if (league) form.append('league', league);
       form.append('category', 'highlights');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/videos/upload`, {
+      const res = await fetch(`/videos/upload`, {
         method: 'POST',
         body: form,
       });
@@ -92,7 +92,7 @@ export default function VideosPage() {
   const loadVideos = async () => {
     setLoading(true);
     try {
-      const data = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/videos`).then(r => r.json());
+      const data = await fetch(`/api/videos`).then(r => r.json());
       setVideos(data || []);
     } catch {
       try {
