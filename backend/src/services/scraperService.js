@@ -194,29 +194,7 @@ class ScraperService {
         await db.upsertMatch(match);
       }
 
-      $('.posiciones table, .tabla, .standings').each((i, table) => {
-        const rows = [];
-        $(table).find('tr').each((j, tr) => {
-          const cols = [];
-          $(tr).find('td, th').each((k, td) => cols.push($(td).text().trim()));
-          if (cols.length >= 5) rows.push(cols);
-        });
-        if (rows.length > 1) {
-          const standings = rows.slice(1).map((row, idx) => ({
-            position: idx + 1,
-            team_name: row[1] || row[0],
-            played: parseInt(row[2]) || 0,
-            won: parseInt(row[3]) || 0,
-            drawn: parseInt(row[4]) || 0,
-            lost: parseInt(row[5]) || 0,
-            goals_for: parseInt(row[6]) || 0,
-            goals_against: parseInt(row[7]) || 0,
-            points: parseInt(row[row.length - 1]) || 0,
-            league: 'primera-a',
-          }));
-          db.upsertStandings(standings).catch(() => {});
-        }
-      });
+      // Standings disabled - PF provides authoritative data
 
       console.log(`Promiedos: ${count} matches extracted`);
     } catch (err) {
