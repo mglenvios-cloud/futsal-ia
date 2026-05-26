@@ -4,6 +4,7 @@ import { Navbar } from '@/components/ui/Navbar';
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import { FloatingChat } from '@/components/chat/FloatingChat';
 import { AdBanner } from '@/components/ui/AdBanner';
+import { BodegonAd } from '@/components/ads/BodegonAd';
 
 export const metadata: Metadata = {
   title: 'Futsal Online | Resultados en Vivo, Tablas y Estadísticas',
@@ -29,7 +30,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <footer className="border-t border-white/[0.06] mt-12 py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <AdBanner size="sm" />
+              <div className="mb-4">
+                <p className="text-[10px] text-surface-600 uppercase tracking-widest mb-2 text-center">Publicidad</p>
+                <BodegonAd />
+              </div>
               <p className="text-center text-[10px] text-surface-600 mt-4 uppercase tracking-widest">Futsal Online © 2026 — Datos proporcionados por ParenLaPelota</p>
             </div>
           </footer>

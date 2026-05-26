@@ -39,11 +39,13 @@ function parseTableDate(title) {
 
 async function scrapeStandings() {
   const tables = await fetchJson(`${API_BASE}/sportspress/v2/tables?per_page=50`);
+  console.log(`  fetched ${tables.length} tables`);
   let count = 0;
   const allStandings = [];
 
   for (const table of tables) {
-    const leagueIds = table.leagues !== undefined ? [table.leagues].flat() : [];
+    const lid = table.leagues;
+    const leagueIds = lid != null && lid !== '' ? [lid].flat() : [];
     const leagueBase = mapLeague(leagueIds);
     if (!leagueBase) continue;
 
@@ -89,14 +91,17 @@ async function scrapeStandings() {
 
 async function scrapeMatches() {
   const events = await fetchJson(`${API_BASE}/sportspress/v2/events?per_page=100&status=publish`);
+  console.log(`  fetched ${events.length} events`);
   const teamsCache = {};
-  let count = 0;
+  let count = 0, skipped = 0;
 
   for (const event of events) {
     // leagues field is a single number, wrap in array for mapLeague
-    const leagueIds = event.leagues !== undefined ? [event.leagues].flat() : [];
+    const lid = event.leagues;
+    const leagueIds = lid != null && lid !== '' ? [lid].flat() : [];
+    if (!leagueIds.length) { skipped++; continue; }
     const league = mapLeague(leagueIds);
-    if (!league) continue;
+    if (!league) { skipped++; continue; }
 
     const dateMatch = event.date ? event.date.split('T')[0] : null;
     if (!dateMatch) continue;
@@ -144,6 +149,7 @@ async function scrapeMatches() {
     count++;
   }
 
+  console.log(`  matches: ${count}, skipped: ${skipped}`);
   return count;
 }
 
