@@ -140,6 +140,11 @@ const db = {
     return sqlite.upsertMatch(match) || localDb.matches.upsert(match);
   },
 
+  async clearStandings() {
+    try { await trySupabase(() => supabase.from('standings').delete().neq('league', '_nonexistent')); } catch {}
+    sqlite.exec("DELETE FROM standings");
+  },
+
   async upsertStandings(rows) {
     const ok = await trySupabase(() => supabase.from('standings').upsert(rows, { onConflict: 'league,team_name' }));
     if (ok) return;

@@ -1,5 +1,6 @@
 const axios = require('axios');
-const db = require('../database/supabase');
+const supabase = require('../database/supabase');
+const sqlite = require('../database/sqlite');
 
 const API_BASE = 'https://pasionfutsal.com.ar/wp-json';
 
@@ -47,6 +48,10 @@ function parseTableDate(title) {
 }
 
 async function scrapeStandings() {
+  // Clear all standings before inserting fresh data
+  await supabase.clearStandings();
+  console.log('  cleared all standings (supabase + sqlite)');
+
   const tables = await fetchJson(`${API_BASE}/sportspress/v2/tables?per_page=50`);
   console.log(`  fetched ${tables.length} tables`);
   let count = 0;
@@ -97,7 +102,7 @@ async function scrapeStandings() {
   }
 
   if (allStandings.length > 0) {
-    await db.upsertStandings(allStandings);
+    sqlite.upsertStandings(allStandings);
   }
   return count;
 }
