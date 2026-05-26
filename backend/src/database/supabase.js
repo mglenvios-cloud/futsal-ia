@@ -142,7 +142,7 @@ const db = {
 
   async clearStandings() {
     try { await trySupabase(() => supabase.from('standings').delete().neq('league', '_nonexistent')); } catch {}
-    sqlite.exec("DELETE FROM standings");
+    // Does NOT clear local SQLite - that's handled separately by the scraper
   },
 
   async upsertStandings(rows) {

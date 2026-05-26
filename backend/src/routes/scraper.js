@@ -122,7 +122,6 @@ router.get('/test-pf-scrape', async (req, res) => {
           sqlite.exec(`DELETE FROM standings WHERE league = '${l.replace(/'/g, "''")}'`);
         }
         sqlite.upsertStandings(allStandings);
-        await supabase.clearStandings();
       }
     } catch (err) {
       insertError = err.message;
