@@ -177,12 +177,13 @@ async function initSchema() {
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
-  // Deduplicate standings and add unique index
+  // Clear old standings and recreate on next scrape cycle
   try {
-    conn.run("DELETE FROM standings WHERE rowid NOT IN (SELECT MIN(rowid) FROM standings GROUP BY league, team_name)");
+    conn.run("DELETE FROM standings");
     saveDb();
+    console.log('Standings cleared for fresh scrape');
   } catch (e) {
-    console.error('Standings dedup error:', e.message);
+    console.error('Standings clear error:', e.message);
   }
   try {
     conn.run("CREATE UNIQUE INDEX IF NOT EXISTS idx_standings_team ON standings(league, team_name)");
