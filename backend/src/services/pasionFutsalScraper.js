@@ -106,8 +106,8 @@ async function scrapeMatches() {
     const dateMatch = event.date ? event.date.split('T')[0] : null;
     if (!dateMatch) continue;
 
-    // teams is space-separated string like "2179 2175"
-    const teamIds = (event.teams || '').toString().split(/\s+/).filter(Boolean).map(Number);
+    // teams can be array [2179,2175] or space-separated string "2179 2175"
+    const teamIds = (Array.isArray(event.teams) ? event.teams : (event.teams || '').toString().split(/\s+/)).filter(Boolean).map(Number);
     if (teamIds.length < 2) continue;
 
     // main_results can be array ["2","3"] or string "2 3"
