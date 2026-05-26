@@ -143,27 +143,19 @@ async function initSchema() {
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
-  // Deduplicate matches BEFORE creating unique index
+  // Deduplicate matches and add unique index
   try {
-    const beforeRows = prepare("SELECT COUNT(*) as cnt FROM matches").get();
-    const beforeCount = beforeRows ? beforeRows.cnt : 0;
-    const groups = prepare("SELECT COUNT(*) as cnt FROM (SELECT 1 FROM matches GROUP BY source_id, source)").get();
-    const uniqueCount = groups ? groups.cnt : 0;
-    if (beforeCount > uniqueCount) {
-      prepare("DELETE FROM matches WHERE id NOT IN (SELECT MIN(id) FROM matches GROUP BY source_id, source)").run();
-      saveDb();
-      const afterRows = prepare("SELECT COUNT(*) as cnt FROM matches").get();
-      console.log(`Matches deduplicated: ${beforeCount} -> ${afterRows ? afterRows.cnt : 0}`);
-    } else {
-      console.log(`Matches: ${beforeCount} rows, ${uniqueCount} unique - no dedup needed`);
-    }
+    prepare("DELETE FROM matches WHERE id NOT IN (SELECT MIN(id) FROM matches GROUP BY source_id, source)").run();
+    saveDb();
+    const after = prepare("SELECT COUNT(*) as cnt FROM matches").get();
+    console.log('Matches after dedup:', after ? after.cnt : '?');
   } catch (e) {
     console.error('Dedup error:', e.message);
   }
   try {
-    conn.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_matches_source ON matches(source_id, source)`);
+    conn.run("CREATE UNIQUE INDEX IF NOT EXISTS idx_matches_source ON matches(source_id, source)");
   } catch (e) {
-    console.error('Index creation error:', e.message);
+    console.error('Index error:', e.message);
   }
 
   conn.run(`
