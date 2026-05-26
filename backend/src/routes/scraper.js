@@ -70,19 +70,75 @@ router.get('/pf-test-standings', async (req, res) => {
   }
 });
 
-// Test standalone upsertStandings
-router.get('/test-sqlite-upsert', async (req, res) => {
+// Test the actual PF scrapeStandings logic
+router.get('/test-pf-scrape', async (req, res) => {
   try {
+    const axios = require('axios');
     const sqlite = require('../database/sqlite');
-    const testRows = [
-      { league: 'primera-a', position: 1, team_name: 'Test Team A', played: 1, won: 1, drawn: 0, lost: 0, goals_for: 5, goals_against: 0, goal_difference: 5, points: 3 },
-      { league: 'primera-a', position: 2, team_name: 'Test Team B', played: 1, won: 0, drawn: 0, lost: 1, goals_for: 0, goals_against: 5, goal_difference: -5, points: 0 },
-    ];
-    sqlite.upsertStandings(testRows);
-    const count = sqlite.getStandings('primera-a').length;
-    // Clean up
-    sqlite.exec("DELETE FROM standings WHERE league = 'primera-a' AND team_name LIKE 'Test %'");
-    res.json({ inserted: 2, countAfterUpsert: count, countAfterCleanup: sqlite.getStandings('primera-a').length });
+    const supabase = require('../database/supabase');
+    const API_BASE = 'https://pasionfutsal.com.ar/wp-json';
+
+    const tables = (await axios.get(`${API_BASE}/sportspress/v2/tables?per_page=50`, { timeout: 15000 })).data;
+
+    const LEAGUE_MAP = { 39: 'primera-a', 35: 'primera-b', 37: 'primera-c', 42: 'primera-d', 40: 'femenino-a', 41: 'femenino-b', 38: 'femenino-c' };
+    const LEAGUE_ZONE = { 43: 'za', 44: 'zb' };
+
+    let count = 0;
+    const allStandings = [];
+    const leaguesToClear = new Set();
+
+    for (const table of tables) {
+      const season = parseInt(table.seasons);
+      if (season !== 162) continue;
+      const lid = table.leagues;
+      const leagueIds = lid != null && lid !== '' ? [lid].flat() : [];
+      const leagueBase = (() => { for (const id of leagueIds) { if (LEAGUE_MAP[id]) return LEAGUE_MAP[id]; } return null; })();
+      if (!leagueBase) continue;
+      const zone = leagueIds.some(id => LEAGUE_ZONE[id] === 'za') ? '-za' : leagueIds.some(id => LEAGUE_ZONE[id] === 'zb') ? '-zb' : '';
+      let league = leagueBase;
+      if (league === 'primera-d') league = `primera-d${zone}`;
+      if (!league.startsWith('primera-') && !league.startsWith('femenino-')) continue;
+      const data = table.data;
+      if (!data) continue;
+      for (const [key, entry] of Object.entries(data)) {
+        if (key === '0' || !entry.pos || entry.pos === 'Pos') continue;
+        allStandings.push({
+          league, position: parseInt(entry.pos) || 0, team_name: entry.name,
+          played: parseInt(entry.j) || 0, won: parseInt(entry.pg) || 0,
+          drawn: parseInt(entry.pe) || 0, lost: parseInt(entry.pp) || 0,
+          goals_for: parseInt(entry.gf) || 0, goals_against: parseInt(entry.gc) || 0,
+          goal_difference: parseInt(entry.dg) || 0, points: parseInt(entry.pts) || 0,
+        });
+        count++;
+      }
+      leaguesToClear.add(league);
+    }
+
+    // Now try to insert
+    let insertError = null;
+    try {
+      if (allStandings.length > 0) {
+        for (const l of leaguesToClear) {
+          sqlite.exec(`DELETE FROM standings WHERE league = '${l.replace(/'/g, "''")}'`);
+        }
+        sqlite.upsertStandings(allStandings);
+        await supabase.clearStandings();
+      }
+    } catch (err) {
+      insertError = err.message;
+    }
+
+    const sqliteCount = sqlite.getStandings().length;
+    const primeraACount = sqlite.getStandings('primera-a').length;
+
+    res.json({
+      tablesFetched: tables.length,
+      parsedCount: count,
+      leaguesToClear: Array.from(leaguesToClear),
+      insertError,
+      sqliteCountAfter: sqliteCount,
+      primeraACount,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
