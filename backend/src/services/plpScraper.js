@@ -186,10 +186,7 @@ function parseFixtures(html, league) {
 
 async function scrapeDivision(slug, league) {
   const html = await fetchPage(slug);
-  const standings = parseStandings(html, league);
-  if (standings.length > 0) {
-    await db.upsertStandings(standings);
-  }
+  // Standings disabled - PF provides authoritative data
   const fixtures = parseFixtures(html, league);
   // Load all existing matches for this league to compare with fuzzy matching
   const existingMatches = league ? sqlite.prepare("SELECT id, home_team, away_team, home_score, away_score FROM matches WHERE league = ?").all(league) : [];
