@@ -22,6 +22,21 @@ router.post('/reset-standings', async (req, res) => {
   }
 });
 
+router.get('/pf-test', async (req, res) => {
+  try {
+    const axios = require('axios');
+    const t0 = await axios.get('https://pasionfutsal.com.ar/wp-json/sportspress/v2/tables?per_page=50', { timeout: 15000 });
+    const info = t0.data.map(t => ({
+      id: t.id, leagues: t.leagues, seasons: t.seasons,
+      title: t.title?.rendered?.substring(0, 40),
+      dataKeys: Object.keys(t.data || {}).length
+    }));
+    res.json({ total: t0.data.length, tables: info });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/diagnose', async (req, res) => {
   const results = {};
   try {
@@ -34,10 +49,10 @@ router.get('/diagnose', async (req, res) => {
     results.eventsError = err.message;
   }
   try {
-    const r = await axios.get('https://pasionfutsal.com.ar/wp-json/sportspress/v2/tables?per_page=3', { timeout: 10000 });
+    const r = await axios.get('https://pasionfutsal.com.ar/wp-json/sportspress/v2/tables?per_page=50', { timeout: 10000 });
     results.tablesOk = true;
     results.tablesCount = r.data.length;
-    results.tables = r.data.slice(0, 2).map(t => ({ id: t.id, leagues: t.leagues, title: t.title?.rendered }));
+    results.tables = r.data.map(t => ({ id: t.id, leagues: t.leagues, seasons: t.seasons, title: t.title?.rendered }));
   } catch (err) {
     results.tablesOk = false;
     results.tablesError = err.message;
