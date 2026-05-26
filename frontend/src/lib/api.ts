@@ -36,6 +36,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    stream: (limit?: number) => fetchAPI(`/matches/stream?limit=${limit || 30}`),
     comments: (matchId: string) => fetchAPI(`/matches/${matchId}/comments`),
     addComment: (matchId: string, body: { text: string; author: string; userId?: number | null }) =>
       fetchAPI(`/matches/${matchId}/comments`, {

@@ -48,6 +48,22 @@ module.exports = (io) => {
     }
   });
 
+  // Partidos con transmisión (LPF Play o YouTube)
+  router.get('/stream', async (req, res) => {
+    try {
+      const { limit = 30 } = req.query;
+      const result = await db.getMatches({ limit: parseInt(limit) });
+      const all = result.data || result || [];
+      const streaming = all.filter(m =>
+        (m.stream_link && m.stream_link.trim() !== '') ||
+        (m.youtube_link && m.youtube_link.trim() !== '')
+      );
+      res.json(streaming);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   router.get('/:id', async (req, res) => {
     try {
       const match = await db.getMatchById(req.params.id);

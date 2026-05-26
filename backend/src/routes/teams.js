@@ -20,8 +20,7 @@ router.get('/:slug', async (req, res) => {
     const matches = (await db.getMatches({ team: team.name, limit: 20 })).data || [];
     const standings = await db.getStandings(team.league);
     const position = standings.find(s => s.team_name === team.name) || null;
-    const players = await db.getPlayers(team.id);
-    res.json({ ...team, matches, position: position?.position || null, points: position?.points || 0, players });
+    res.json({ ...team, matches, position: position?.position || null, points: position?.points || 0, players: [] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

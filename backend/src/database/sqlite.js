@@ -143,18 +143,16 @@ async function initSchema() {
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
-  conn.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_matches_source ON matches(source_id, source)`);
-
-  // Deduplicate matches - keep only the latest row per (source_id, source)
-  const dupCount = prepare("SELECT COUNT(*) - COUNT(DISTINCT source_id || '-' || source) FROM matches").get();
-  if (dupCount && dupCount[Object.keys(dupCount)[0]] > 0) {
-    prepare(`
-      DELETE FROM matches WHERE id NOT IN (
-        SELECT MIN(id) FROM matches GROUP BY source_id, source
-      )
-    `).run();
+  // Deduplicate matches BEFORE creating unique index
+  const totalBefore = db.exec("SELECT COUNT(*) as c FROM matches")[0]?.values?.[0]?.[0] || 0;
+  const uniqueGroups = db.exec("SELECT COUNT(*) FROM (SELECT 1 FROM matches GROUP BY source_id, source)")[0]?.values?.[0]?.[0] || 0;
+  if (totalBefore > uniqueGroups) {
+    db.exec("DELETE FROM matches WHERE id NOT IN (SELECT MIN(id) FROM matches GROUP BY source_id, source)");
     saveDb();
+    const totalAfter = db.exec("SELECT COUNT(*) as c FROM matches")[0]?.values?.[0]?.[0] || 0;
+    console.log(`Deduplicated matches: ${totalBefore} -> ${totalAfter}`);
   }
+  conn.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_matches_source ON matches(source_id, source)`);
 
   conn.run(`
     CREATE TABLE IF NOT EXISTS standings (

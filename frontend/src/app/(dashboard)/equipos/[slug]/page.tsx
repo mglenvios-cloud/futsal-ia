@@ -65,10 +65,6 @@ export default function TeamDetailPage() {
                   <p className="stat-value">{team.points || 0}</p>
                   <p className="stat-label">Puntos</p>
                 </div>
-                <div className="stat-card text-center min-w-[60px]">
-                  <p className="stat-value">{team.players?.length || 0}</p>
-                  <p className="stat-label">Jugadores</p>
-                </div>
               </div>
             )}
           </div>
@@ -86,7 +82,6 @@ export default function TeamDetailPage() {
       <div className="flex gap-1.5 flex-wrap">
         {[
           { id: 'info', label: 'Club' },
-          { id: 'players', label: `Plantilla` },
           { id: 'matches', label: 'Partidos' },
           { id: 'stats', label: 'Estadísticas' },
         ].map((t) => (
@@ -128,45 +123,6 @@ export default function TeamDetailPage() {
             <div className="card p-8 text-center">
               <p className="text-surface-400 text-sm">Información del club próximamente</p>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab: Players */}
-      {tab === 'players' && (
-        <div className="space-y-2">
-          {team.players?.length > 0 ? (
-            <>
-              <p className="text-xs text-surface-400 uppercase tracking-wider font-medium">{team.players.length} jugadores</p>
-              <div className="grid gap-2">
-                {team.players.map((p) => (
-                  <div key={p.id} className="card-hover p-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-surface-200/50 flex items-center justify-center text-xs font-bold text-surface-400">
-                      {p.number || '?'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold">{p.name}</p>
-                      <div className="flex gap-2 text-[11px] text-surface-500">
-                        {p.position && (
-                          <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-medium border', POS_COLORS[p.position as keyof typeof POS_COLORS] || 'bg-surface-200/50 text-surface-400 border-surface-400/20')}>
-                            {p.position}
-                          </span>
-                        )}
-                        <span>{p.nationality}</span>
-                        {p.age && <span>{p.age} años</span>}
-                      </div>
-                    </div>
-                    <div className="flex gap-3 text-center text-[11px]">
-                      <div><p className="font-bold text-green-400">{p.goals}</p><p className="text-surface-500">G</p></div>
-                      <div><p className="font-bold text-blue-400">{p.assists}</p><p className="text-surface-500">A</p></div>
-                      <div><p className="font-bold text-yellow-400">{p.yellow_cards}</p><p className="text-surface-500">TA</p></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="card p-8 text-center"><p className="text-surface-400 text-sm">Sin datos de jugadores</p></div>
           )}
         </div>
       )}
