@@ -24,8 +24,6 @@ router.post('/reset-standings', async (req, res) => {
 
 router.get('/pf-test-standings', async (req, res) => {
   try {
-    const pasionFutsalScraper = require('../services/pasionFutsalScraper');
-    // Temporarily monkey-patch scrapeStandings to get debug info
     const axios = require('axios');
     const API_BASE = 'https://pasionfutsal.com.ar/wp-json';
     const tables = (await axios.get(`${API_BASE}/sportspress/v2/tables?per_page=50`, { timeout: 15000 })).data;
@@ -50,7 +48,6 @@ router.get('/pf-test-standings', async (req, res) => {
                    leagueIds.some(id => LEAGUE_ZONE[id] === 'zb') ? '-zb' : '';
       let league = leagueBase;
       if (league === 'primera-d') league = `primera-d${zone}`;
-      const dataKeys = table.data ? Object.keys(table.data) : [];
 
       const parsed = [];
       if (table.data) {
@@ -65,10 +62,27 @@ router.get('/pf-test-standings', async (req, res) => {
         leagueMapped: leagueBase, zoneSuffix: zone, fullLeague: league,
         title: (table.title?.rendered || '').substring(0, 40),
         parsedCount: parsed.length,
-        parsedNames: parsed.map(p => `${p.pos}:${p.name}`).join('|'),
       });
     }
     res.json({ total: tables.length, results });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
+// Test standalone upsertStandings
+router.get('/test-sqlite-upsert', async (req, res) => {
+  try {
+    const sqlite = require('../database/sqlite');
+    const testRows = [
+      { league: 'primera-a', position: 1, team_name: 'Test Team A', played: 1, won: 1, drawn: 0, lost: 0, goals_for: 5, goals_against: 0, goal_difference: 5, points: 3 },
+      { league: 'primera-a', position: 2, team_name: 'Test Team B', played: 1, won: 0, drawn: 0, lost: 1, goals_for: 0, goals_against: 5, goal_difference: -5, points: 0 },
+    ];
+    sqlite.upsertStandings(testRows);
+    const count = sqlite.getStandings('primera-a').length;
+    // Clean up
+    sqlite.exec("DELETE FROM standings WHERE league = 'primera-a' AND team_name LIKE 'Test %'");
+    res.json({ inserted: 2, countAfterUpsert: count, countAfterCleanup: sqlite.getStandings('primera-a').length });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
