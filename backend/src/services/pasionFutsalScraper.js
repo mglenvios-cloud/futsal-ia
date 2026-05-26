@@ -48,14 +48,11 @@ function parseTableDate(title) {
 }
 
 async function scrapeStandings() {
-  // Clear all standings before inserting fresh data
-  await supabase.clearStandings();
-  console.log('  cleared all standings (supabase + sqlite)');
-
   const tables = await fetchJson(`${API_BASE}/sportspress/v2/tables?per_page=50`);
   console.log(`  fetched ${tables.length} tables`);
   let count = 0;
   const allStandings = [];
+  const leaguesToClear = new Set();
 
   for (const table of tables) {
     // Only 2026 season (season ID 162)
@@ -97,12 +94,19 @@ async function scrapeStandings() {
 
     if (rows.length > 0) {
       allStandings.push(...rows);
+      leaguesToClear.add(league);
       count += rows.length;
     }
   }
 
   if (allStandings.length > 0) {
+    // Delete all standings for affected leagues, then insert fresh data
+    for (const league of leaguesToClear) {
+      sqlite.exec(`DELETE FROM standings WHERE league = '${league.replace(/'/g, "''")}'`);
+    }
     sqlite.upsertStandings(allStandings);
+    // Also clear Supabase old data (best effort)
+    try { await supabase.clearStandings(); } catch {}
   }
   return count;
 }

@@ -4,13 +4,10 @@ const db = require('../database/supabase');
 
 router.get('/', async (req, res) => {
   try {
-    const { league, source } = req.query;
-    if (source) {
-      const sqlite = require('../database/sqlite');
-      return res.json(sqlite.getStandings(league || undefined));
-    }
-    const standings = await db.getStandings(league);
-    res.json(standings);
+    const { league } = req.query;
+    // Always use SQLite for standings (PF scraper writes here)
+    const sqlite = require('../database/sqlite');
+    res.json(sqlite.getStandings(league || undefined));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
