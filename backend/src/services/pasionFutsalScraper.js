@@ -110,10 +110,11 @@ async function scrapeMatches() {
     const teamIds = (event.teams || '').toString().split(/\s+/).filter(Boolean).map(Number);
     if (teamIds.length < 2) continue;
 
-    // main_results is space-separated score like "2 3"
+    // main_results can be array ["2","3"] or string "2 3"
     let homeScore = null, awayScore = null;
-    if (event.main_results) {
-      const parts = event.main_results.toString().split(/\s+/).filter(Boolean).map(Number);
+    if (event.main_results != null) {
+      const raw = Array.isArray(event.main_results) ? event.main_results : event.main_results.toString().split(/\s+/);
+      const parts = raw.filter(Boolean).map(Number);
       if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
         homeScore = parts[0];
         awayScore = parts[1];
