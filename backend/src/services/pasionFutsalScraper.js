@@ -102,12 +102,22 @@ async function scrapeStandings() {
   if (allStandings.length > 0) {
     // Delete all standings for affected leagues, then insert fresh data
     for (const league of leaguesToClear) {
-      sqlite.exec(`DELETE FROM standings WHERE league = '${league.replace(/'/g, "''")}'`);
+      try {
+        sqlite.exec(`DELETE FROM standings WHERE league = '${league.replace(/'/g, "''")}'`);
+      } catch (e) {
+        console.error(`  delete error for ${league}:`, e.message);
+      }
     }
-    sqlite.upsertStandings(allStandings);
-    // Also clear Supabase old data (best effort)
-    try { await supabase.clearStandings(); } catch {}
+    try {
+      sqlite.upsertStandings(allStandings);
+      console.log(`  inserted ${allStandings.length} standings rows`);
+    } catch (e) {
+      console.error(`  upsertStandings error:`, e.message, e.stack);
+    }
   }
+  // Also clear Supabase old data (best effort)
+  try { await supabase.clearStandings(); } catch (e) { console.error('  supabase clear error:', e.message); }
+  console.log(`  standings count: ${count}`);
   return count;
 }
 
