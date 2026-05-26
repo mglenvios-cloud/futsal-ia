@@ -22,18 +22,55 @@ router.post('/reset-standings', async (req, res) => {
   }
 });
 
-router.get('/pf-test', async (req, res) => {
+router.get('/pf-test-standings', async (req, res) => {
   try {
+    const pasionFutsalScraper = require('../services/pasionFutsalScraper');
+    // Temporarily monkey-patch scrapeStandings to get debug info
     const axios = require('axios');
-    const t0 = await axios.get('https://pasionfutsal.com.ar/wp-json/sportspress/v2/tables?per_page=50', { timeout: 15000 });
-    const info = t0.data.map(t => ({
-      id: t.id, leagues: t.leagues, seasons: t.seasons,
-      title: t.title?.rendered?.substring(0, 40),
-      dataKeys: Object.keys(t.data || {}).length
-    }));
-    res.json({ total: t0.data.length, tables: info });
+    const API_BASE = 'https://pasionfutsal.com.ar/wp-json';
+    const tables = (await axios.get(`${API_BASE}/sportspress/v2/tables?per_page=50`, { timeout: 15000 })).data;
+
+    const LEAGUE_MAP = {
+      39: 'primera-a', 35: 'primera-b', 37: 'primera-c', 42: 'primera-d',
+      40: 'femenino-a', 41: 'femenino-b', 38: 'femenino-c',
+    };
+    const LEAGUE_ZONE = { 43: 'za', 44: 'zb' };
+
+    const results = [];
+    for (const table of tables) {
+      const seasonN = parseInt(table.seasons);
+      const lid = table.leagues;
+      const leagueIds = lid != null && lid !== '' ? [lid].flat() : [];
+      let leagueBase = null;
+      for (const id of leagueIds) {
+        if (LEAGUE_MAP[id]) { leagueBase = LEAGUE_MAP[id]; break; }
+      }
+      if (!leagueBase) { for (const id of leagueIds) { if (LEAGUE_ZONE[id]) { leagueBase = 'primera-d'; break; } } }
+      const zone = leagueIds.some(id => LEAGUE_ZONE[id] === 'za') ? '-za' :
+                   leagueIds.some(id => LEAGUE_ZONE[id] === 'zb') ? '-zb' : '';
+      let league = leagueBase;
+      if (league === 'primera-d') league = `primera-d${zone}`;
+      const dataKeys = table.data ? Object.keys(table.data) : [];
+
+      const parsed = [];
+      if (table.data) {
+        for (const [key, entry] of Object.entries(table.data)) {
+          if (key === '0' || !entry.pos || entry.pos === 'Pos') continue;
+          parsed.push({ pos: entry.pos, name: entry.name });
+        }
+      }
+
+      results.push({
+        id: table.id, seasons: seasonN, leagues: lid,
+        leagueMapped: leagueBase, zoneSuffix: zone, fullLeague: league,
+        title: (table.title?.rendered || '').substring(0, 40),
+        parsedCount: parsed.length,
+        parsedNames: parsed.map(p => `${p.pos}:${p.name}`).join('|'),
+      });
+    }
+    res.json({ total: tables.length, results });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, stack: err.stack });
   }
 });
 
