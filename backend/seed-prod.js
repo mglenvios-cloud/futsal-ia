@@ -5,7 +5,18 @@ const path = require('path');
 const DB_PATH = path.join(__dirname, 'data', 'futsal.db');
 
 async function main() {
-  console.log('Running seed (dedup + fresh data)...');
+  if (fs.existsSync(DB_PATH)) {
+    const sqlite = require('./src/database/sqlite');
+    await sqlite.init();
+    const teams = sqlite.getTeams({});
+    if (teams.length > 0) {
+      console.log('DB exists with', teams.length, 'teams');
+      await runEnhancements(sqlite);
+      return;
+    }
+  }
+
+  console.log('DB empty or missing, running seed...');
   execSync('node seed-reales-2026.js', { stdio: 'inherit' });
   console.log('Seed complete');
   const sqlite = require('./src/database/sqlite');

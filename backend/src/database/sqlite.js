@@ -145,10 +145,11 @@ async function initSchema() {
   `);
   // Deduplicate matches and add unique index
   try {
-    prepare("DELETE FROM matches WHERE id NOT IN (SELECT MIN(id) FROM matches GROUP BY source_id, source)").run();
+    conn.run("DELETE FROM matches WHERE rowid NOT IN (SELECT MIN(rowid) FROM matches GROUP BY source_id, source)");
     saveDb();
-    const after = prepare("SELECT COUNT(*) as cnt FROM matches").get();
-    console.log('Matches after dedup:', after ? after.cnt : '?');
+    const after = conn.exec("SELECT COUNT(*) as cnt FROM matches");
+    const cnt = after && after[0] && after[0].values ? after[0].values[0][0] : '?';
+    console.log('Matches after dedup:', cnt);
   } catch (e) {
     console.error('Dedup error:', e.message);
   }
