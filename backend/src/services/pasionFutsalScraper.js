@@ -27,9 +27,18 @@ function mapLeague(leagues) {
   if (!leagues || !leagues.length) return null;
   for (const id of leagues) {
     if (LEAGUE_MAP[id]) return LEAGUE_MAP[id];
-    if (LEAGUE_ZONE[id]) return LEAGUE_ZONE[id];
+  }
+  // Check zones: return base league 'primera-d'
+  for (const id of leagues) {
+    if (LEAGUE_ZONE[id]) return 'primera-d';
   }
   return null;
+}
+
+function getZone(leagues) {
+  if (!leagues || !leagues.length) return '';
+  return leagues.some(id => LEAGUE_ZONE[id] === 'za') ? '-za' :
+         leagues.some(id => LEAGUE_ZONE[id] === 'zb') ? '-zb' : '';
 }
 
 function parseTableDate(title) {
@@ -49,9 +58,7 @@ async function scrapeStandings() {
     const leagueBase = mapLeague(leagueIds);
     if (!leagueBase) continue;
 
-    const zone = leagueIds.some(id => LEAGUE_ZONE[id] === 'za') ? '-za' :
-                 leagueIds.some(id => LEAGUE_ZONE[id] === 'zb') ? '-zb' : '';
-
+    const zone = getZone(leagueIds);
     let league = leagueBase;
     if (league === 'primera-d') league = `primera-d${zone}`;
     if (!league.startsWith('primera-') && !league.startsWith('femenino-')) continue;
@@ -100,8 +107,11 @@ async function scrapeMatches() {
     const lid = event.leagues;
     const leagueIds = lid != null && lid !== '' ? [lid].flat() : [];
     if (!leagueIds.length) { skipped++; continue; }
-    const league = mapLeague(leagueIds);
+    let league = mapLeague(leagueIds);
     if (!league) { skipped++; continue; }
+    const zone = getZone(leagueIds);
+    if (league === 'primera-d') league = `primera-d${zone}`;
+    if (!league.startsWith('primera-') && !league.startsWith('femenino-')) { skipped++; continue; }
 
     const dateMatch = event.date ? event.date.split('T')[0] : null;
     if (!dateMatch) continue;
