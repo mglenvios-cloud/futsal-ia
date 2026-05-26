@@ -306,6 +306,11 @@ const api = {
     return new StatementWrapper(this.conn.prepare(sql));
   },
 
+  exec(sql) {
+    this.conn.run(sql);
+    saveDb();
+  },
+
   getMatches({ league, date, team, status, limit = 50, offset = 0 } = {}) {
     let sql = 'SELECT * FROM matches WHERE 1=1';
     const params = [];

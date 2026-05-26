@@ -12,6 +12,16 @@ router.post('/scrape', async (req, res) => {
   }
 });
 
+router.post('/reset-standings', async (req, res) => {
+  try {
+    const db = require('../database/sqlite');
+    db.exec("DELETE FROM standings");
+    res.json({ success: true, message: 'Standings cleared' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/diagnose', async (req, res) => {
   const results = {};
   try {
