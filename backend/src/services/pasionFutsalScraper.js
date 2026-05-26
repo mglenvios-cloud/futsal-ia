@@ -53,6 +53,12 @@ async function scrapeStandings() {
   const allStandings = [];
 
   for (const table of tables) {
+    // Only 2026 season (season ID 162)
+    const season = parseInt(table.seasons);
+    if (season !== 162) {
+      console.log(`    skipping table ${table.id} (season ${season})`);
+      continue;
+    }
     const lid = table.leagues;
     const leagueIds = lid != null && lid !== '' ? [lid].flat() : [];
     const leagueBase = mapLeague(leagueIds);
@@ -103,18 +109,9 @@ async function scrapeMatches() {
   let count = 0, skipped = 0;
 
   for (const event of events) {
-    // leagues field is a single number, wrap in array for mapLeague
-    const lid = event.leagues;
-    const leagueIds = lid != null && lid !== '' ? [lid].flat() : [];
-    if (!leagueIds.length) { skipped++; continue; }
-    let league = mapLeague(leagueIds);
-    if (!league) { skipped++; continue; }
-    const zone = getZone(leagueIds);
-    if (league === 'primera-d') league = `primera-d${zone}`;
-    if (!league.startsWith('primera-') && !league.startsWith('femenino-')) { skipped++; continue; }
-
-    const dateMatch = event.date ? event.date.split('T')[0] : null;
-    if (!dateMatch) continue;
+    // Only 2026 season
+    const season = parseInt(event.seasons);
+    if (season !== 162) continue;
 
     // teams can be array [2179,2175] or space-separated string "2179 2175"
     const teamIds = (Array.isArray(event.teams) ? event.teams : (event.teams || '').toString().split(/\s+/)).filter(Boolean).map(Number);
