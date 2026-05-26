@@ -177,6 +177,19 @@ async function initSchema() {
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
+  // Deduplicate standings and add unique index
+  try {
+    conn.run("DELETE FROM standings WHERE rowid NOT IN (SELECT MIN(rowid) FROM standings GROUP BY league, team_name)");
+    saveDb();
+  } catch (e) {
+    console.error('Standings dedup error:', e.message);
+  }
+  try {
+    conn.run("CREATE UNIQUE INDEX IF NOT EXISTS idx_standings_team ON standings(league, team_name)");
+  } catch (e) {
+    console.error('Standings index error:', e.message);
+  }
+
   conn.run(`
     CREATE TABLE IF NOT EXISTS top_scorers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

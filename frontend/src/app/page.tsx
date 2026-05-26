@@ -7,6 +7,7 @@ import { StandingsTable } from '@/components/teams/StandingsTable';
 import { cn, getLeagueName } from '@/lib/utils';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { AdBanner } from '@/components/ui/AdBanner';
+import { BodegonAd } from '@/components/ads/BodegonAd';
 import Link from 'next/link';
 
 const LEAGUES = [
@@ -212,7 +213,10 @@ export default function HomePage() {
           )}
 
           {/* Banner entre secciones */}
-          <AdBanner size="banner" />
+          <div className="mb-2">
+            <p className="text-[10px] text-surface-600 uppercase tracking-widest mb-2">Publicidad</p>
+            <BodegonAd />
+          </div>
 
           {/* Partidos de Hoy */}
           <section>
@@ -262,8 +266,11 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Banner sidebar — rectangle */}
-          <AdBanner size="rectangle" />
+          {/* Banner sidebar — Bodegón */}
+          <div>
+            <p className="text-[10px] text-surface-600 uppercase tracking-widest mb-2">Publicidad</p>
+            <BodegonAd />
+          </div>
 
           {/* Chat IA */}
           <section className="card-gradient overflow-hidden rounded-xl">
