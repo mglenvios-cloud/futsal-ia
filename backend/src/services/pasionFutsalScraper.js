@@ -43,11 +43,12 @@ async function scrapeStandings() {
   const allStandings = [];
 
   for (const table of tables) {
-    const leagueBase = mapLeague(table.leagues);
+    const leagueIds = table.leagues !== undefined ? [table.leagues].flat() : [];
+    const leagueBase = mapLeague(leagueIds);
     if (!leagueBase) continue;
 
-    const zone = table.leagues.some(id => LEAGUE_ZONE[id] === 'za') ? '-za' :
-                 table.leagues.some(id => LEAGUE_ZONE[id] === 'zb') ? '-zb' : '';
+    const zone = leagueIds.some(id => LEAGUE_ZONE[id] === 'za') ? '-za' :
+                 leagueIds.some(id => LEAGUE_ZONE[id] === 'zb') ? '-zb' : '';
 
     let league = leagueBase;
     if (league === 'primera-d') league = `primera-d${zone}`;
@@ -88,39 +89,40 @@ async function scrapeStandings() {
 
 async function scrapeMatches() {
   const events = await fetchJson(`${API_BASE}/sportspress/v2/events?per_page=100&status=publish`);
-  const teams = {};
+  const teamsCache = {};
   let count = 0;
 
   for (const event of events) {
-    const leagueId = event.sp_league;
-    const league = mapLeague(leagueId ? [leagueId] : []);
+    // leagues field is a single number, wrap in array for mapLeague
+    const leagueIds = event.leagues !== undefined ? [event.leagues].flat() : [];
+    const league = mapLeague(leagueIds);
     if (!league) continue;
 
     const dateMatch = event.date ? event.date.split('T')[0] : null;
     if (!dateMatch) continue;
 
-    const teamIds = event.teams || [];
+    // teams is space-separated string like "2179 2175"
+    const teamIds = (event.teams || '').toString().split(/\s+/).filter(Boolean).map(Number);
     if (teamIds.length < 2) continue;
 
-    const results = event.results || {};
+    // main_results is space-separated score like "2 3"
     let homeScore = null, awayScore = null;
-
-    if (results[teamIds[0]] && results[teamIds[1]]) {
-      const hg = parseInt(results[teamIds[0]].goals);
-      const ag = parseInt(results[teamIds[1]].goals);
-      if (!isNaN(hg) && !isNaN(ag)) {
-        homeScore = hg;
-        awayScore = ag;
+    if (event.main_results) {
+      const parts = event.main_results.toString().split(/\s+/).filter(Boolean).map(Number);
+      if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        homeScore = parts[0];
+        awayScore = parts[1];
       }
     }
 
     for (const tid of teamIds) {
-      if (!teams[tid]) {
+      const key = String(tid);
+      if (!teamsCache[key]) {
         try {
           const t = await fetchJson(`${API_BASE}/sportspress/v2/teams/${tid}`);
-          teams[tid] = t.title.rendered || `Team ${tid}`;
+          teamsCache[key] = t.title.rendered || `Team ${tid}`;
         } catch {
-          teams[tid] = `Team ${tid}`;
+          teamsCache[key] = `Team ${tid}`;
         }
       }
     }
@@ -129,13 +131,13 @@ async function scrapeMatches() {
       source_id: `pf-${event.id}`,
       source: 'pasionfutsal',
       league,
-      home_team: teams[teamIds[0]] || `Team ${teamIds[0]}`,
-      away_team: teams[teamIds[1]] || `Team ${teamIds[1]}`,
+      home_team: teamsCache[String(teamIds[0])] || `Team ${teamIds[0]}`,
+      away_team: teamsCache[String(teamIds[1])] || `Team ${teamIds[1]}`,
       home_score: homeScore,
       away_score: awayScore,
       status: homeScore !== null ? 'finished' : 'scheduled',
       date: dateMatch,
-      round: null,
+      round: event.day || null,
     };
 
     await db.upsertMatch(match);
