@@ -33,9 +33,10 @@ export default function PartidosPage() {
         if (tab === 'fixture') {
           data = await api.matches.upcoming(100);
         } else {
-          const params = filter !== 'all' ? { league: filter, limit: 100 } : { limit: 100 };
+          const params = filter !== 'all' ? { league: filter, limit: 200 } : { limit: 200 };
           data = await api.matches.list(params);
           data = data.data || [];
+          data = data.filter((m: any) => m.status === 'finished' && m.home_score != null && m.away_score != null);
         }
         setMatches(Array.isArray(data) ? data : []);
       } catch { setMatches([]); }
