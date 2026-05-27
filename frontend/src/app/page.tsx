@@ -173,15 +173,15 @@ export default function HomePage() {
     <div className="space-y-6">
       <SearchBar />
 
-      {/* Banner publicitario top — Bodegón de Bebidas */}
+      {/* Banner 728x90 — Bodegón de Bebidas */}
       <a
         href="https://www.instagram.com/bodegondebebidas/"
         target="_blank"
         rel="noopener noreferrer sponsored"
-        className="group block w-full rounded-xl overflow-hidden border border-white/[0.06] shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-orange-600/10 via-orange-500/5 to-orange-600/10"
+        className="group block w-full rounded-lg overflow-hidden border border-white/[0.06] shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-r from-orange-600/10 via-orange-500/5 to-orange-600/10"
       >
-        <div className="flex items-center gap-4 p-3">
-          <div className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden">
+        <div className="flex items-center gap-3 p-2">
+          <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden">
             <img
               src="/images/bodegon-1.jpg"
               alt="Bodegón de Bebidas"
@@ -189,16 +189,11 @@ export default function HomePage() {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <p className="text-base sm:text-lg font-bold text-white truncate">Bodegón de Bebidas</p>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white text-[10px] font-medium whitespace-nowrap">@bodegondebebidas</span>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-bold text-white truncate">Bodegón de Bebidas</p>
+              <span className="text-[10px] text-purple-400 font-medium whitespace-nowrap">@bodegondebebidas</span>
             </div>
-            <p className="text-xs text-surface-400">Distribuidora de Bebidas y Yerbas</p>
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-surface-500">
-              <span>📦 Venta mayorista y minorista</span>
-              <span>📍 Envíos a todo el país</span>
-              <span>⏱️ Atención personalizada</span>
-            </div>
+            <p className="text-[11px] text-surface-400 truncate">Distribuidora de Bebidas y Yerbas · Venta mayorista y minorista · Envíos a todo el país</p>
           </div>
         </div>
       </a>
