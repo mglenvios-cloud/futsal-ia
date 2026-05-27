@@ -110,6 +110,13 @@ async function start() {
   await sqlite.init();
   console.log('Database initialized');
 
+  // Set LPF Play stream link on existing PF matches
+  try {
+    const { prepare, saveDb } = require('./database/sqlite');
+    const updated = prepare("UPDATE matches SET stream_link = 'https://lpfplay.com/' WHERE source = 'pasionfutsal' AND (stream_link IS NULL OR stream_link = '')").run();
+    if (updated.changes > 0) { saveDb(); console.log(`  stream_link set on ${updated.changes} PF matches`); }
+  } catch (e) { /* ignore */ }
+
   server.listen(PORT, () => {
     console.log(`Futsal IA Backend running on port ${PORT}`);
     console.log(`WebSocket server ready`);
