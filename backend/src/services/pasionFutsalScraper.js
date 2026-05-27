@@ -170,6 +170,7 @@ async function scrapeMatches() {
       status: homeScore !== null ? 'finished' : 'scheduled',
       date: dateMatch,
       round: event.day || null,
+      stream_link: 'https://lpfplay.com/',
     };
 
     await db.upsertMatch(match);
@@ -182,6 +183,14 @@ async function scrapeMatches() {
 
 async function scrapeAll() {
   console.log('PasionFutsal Scraper: starting...');
+
+  // One-time migration: set stream_link on PF matches
+  try {
+    const { prepare, saveDb } = require('../database/sqlite');
+    prepare("UPDATE matches SET stream_link = 'https://lpfplay.com/' WHERE source = 'pasionfutsal' AND (stream_link IS NULL OR stream_link = '')").run();
+    saveDb();
+  } catch (e) { /* ignore */ }
+
   let standings = 0, matches = 0;
 
   try {
