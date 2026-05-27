@@ -51,8 +51,15 @@ async function getDb() {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   if (!SQL) SQL = await initSqlJs();
   if (fs.existsSync(DB_PATH)) {
-    const buffer = fs.readFileSync(DB_PATH);
-    db = new SQL.Database(buffer);
+    try {
+      const buffer = fs.readFileSync(DB_PATH);
+      db = new SQL.Database(buffer);
+      db.run('SELECT 1'); // test
+    } catch (e) {
+      console.error('DB corrupted, recreating:', e.message);
+      fs.unlinkSync(DB_PATH);
+      db = new SQL.Database();
+    }
   } else {
     db = new SQL.Database();
   }
@@ -63,10 +70,16 @@ async function getDb() {
 
 function saveDb() {
   if (!db) return;
-  const data = db.export();
-  const dir = path.dirname(DB_PATH);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(DB_PATH, Buffer.from(data));
+  try {
+    const data = db.export();
+    const dir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const tmp = DB_PATH + '.tmp';
+    fs.writeFileSync(tmp, Buffer.from(data));
+    fs.renameSync(tmp, DB_PATH);
+  } catch (e) {
+    console.error('saveDb error:', e.message);
+  }
 }
 
 async function initSchema() {
