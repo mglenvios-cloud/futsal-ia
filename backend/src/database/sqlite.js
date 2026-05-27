@@ -264,6 +264,44 @@ async function initSchema() {
     )
   `);
   conn.run(`
+    CREATE TABLE IF NOT EXISTS libertadores_matches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_name TEXT NOT NULL,
+      home_team TEXT NOT NULL,
+      away_team TEXT NOT NULL,
+      home_score INTEGER,
+      away_score INTEGER,
+      status TEXT DEFAULT 'scheduled',
+      date TEXT,
+      time TEXT,
+      venue TEXT DEFAULT 'Carlos Barbosa, Brasil',
+      round TEXT,
+      stream_link TEXT,
+      youtube_link TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+  conn.run(`
+    CREATE TABLE IF NOT EXISTS selecciones_matches (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      category TEXT NOT NULL,
+      competition TEXT,
+      home_team TEXT NOT NULL DEFAULT 'Argentina',
+      away_team TEXT NOT NULL,
+      home_score INTEGER,
+      away_score INTEGER,
+      status TEXT DEFAULT 'scheduled',
+      date TEXT,
+      time TEXT,
+      venue TEXT,
+      stream_link TEXT,
+      youtube_link TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+  conn.run(`
     CREATE TABLE IF NOT EXISTS notifications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       type TEXT NOT NULL,
@@ -485,6 +523,56 @@ const api = {
     const params = [];
     if (league) { sql += ' AND league = ?'; params.push(league); }
     return prepare(sql + ' ORDER BY created_at DESC LIMIT ?').all(...params.concat([limit]));
+  },
+
+  getLibertadoresMatches({ group_name, status } = {}) {
+    let sql = 'SELECT * FROM libertadores_matches WHERE 1=1';
+    const params = [];
+    if (group_name) { sql += ' AND group_name = ?'; params.push(group_name); }
+    if (status) { sql += ' AND status = ?'; params.push(status); }
+    sql += ' ORDER BY date, time';
+    return prepare(sql).all(...params);
+  },
+  getSeleccionesMatches({ category } = {}) {
+    let sql = 'SELECT * FROM selecciones_matches WHERE 1=1';
+    const params = [];
+    if (category) { sql += ' AND category = ?'; params.push(category); }
+    sql += ' ORDER BY date DESC, time';
+    return prepare(sql).all(...params);
+  },
+  upsertLibertadoresMatch(match) {
+    const existing = prepare('SELECT id FROM libertadores_matches WHERE home_team = ? AND away_team = ? AND date = ?').get(match.home_team, match.away_team, match.date);
+    match.updated_at = new Date().toISOString();
+    if (existing) {
+      const cols = Object.keys(match).filter(k => k !== 'id');
+      const set = cols.map(c => `"${c}" = ?`).join(', ');
+      prepare(`UPDATE libertadores_matches SET ${set} WHERE id = ?`).run(...cols.map(c => match[c]), existing.id);
+      saveDb();
+      return { ...match, id: existing.id };
+    }
+    match.created_at = match.updated_at;
+    const cols = Object.keys(match);
+    prepare(`INSERT INTO libertadores_matches (${cols.map(c => `"${c}"`).join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).run(...cols.map(c => match[c]));
+    const id = lastId();
+    saveDb();
+    return { ...match, id };
+  },
+  upsertSeleccionesMatch(match) {
+    const existing = prepare('SELECT id FROM selecciones_matches WHERE home_team = ? AND away_team = ? AND date = ? AND category = ?').get(match.home_team, match.away_team, match.date, match.category);
+    match.updated_at = new Date().toISOString();
+    if (existing) {
+      const cols = Object.keys(match).filter(k => k !== 'id');
+      const set = cols.map(c => `"${c}" = ?`).join(', ');
+      prepare(`UPDATE selecciones_matches SET ${set} WHERE id = ?`).run(...cols.map(c => match[c]), existing.id);
+      saveDb();
+      return { ...match, id: existing.id };
+    }
+    match.created_at = match.updated_at;
+    const cols = Object.keys(match);
+    prepare(`INSERT INTO selecciones_matches (${cols.map(c => `"${c}"`).join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).run(...cols.map(c => match[c]));
+    const id = lastId();
+    saveDb();
+    return { ...match, id };
   },
 
   saveChatMessage(message) {

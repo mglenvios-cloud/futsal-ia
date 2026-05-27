@@ -18,6 +18,8 @@ async function main() {
 
   console.log('DB empty or missing, running seed...');
   execSync('node seed-reales-2026.js', { stdio: 'inherit' });
+  execSync('node src/database/seedLibertadores.js', { stdio: 'inherit' });
+  execSync('node src/database/seedSelecciones.js', { stdio: 'inherit' });
   console.log('Seed complete');
   const sqlite = require('./src/database/sqlite');
   await sqlite.init();

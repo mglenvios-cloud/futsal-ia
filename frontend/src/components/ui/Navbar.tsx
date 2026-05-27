@@ -13,6 +13,8 @@ const navLinks = [
   { label: 'Partidos', href: '/partidos' },
   { label: 'Posiciones', href: '/posiciones' },
   { label: 'Fixture', href: '/partidos?tab=fixture' },
+  { label: 'Libertadores', href: '/libertadores', emoji: '🏆' },
+  { label: 'Selecciones', href: '/selecciones', emoji: '🇦🇷' },
   { label: 'Equipos', href: '/equipos' },
   { label: 'Chat IA', href: '/chat' },
   { label: 'Videos', href: '/videos' },
@@ -57,17 +59,18 @@ export function Navbar() {
           <div className="hidden lg:flex items-center gap-1 overflow-x-auto scrollbar-hide">
             {navLinks.map((link) => (
               <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl transition-all whitespace-nowrap',
-                  pathname === link.href
-                    ? 'bg-primary-500/15 text-primary-400 shadow-sm shadow-primary-500/5'
-                    : 'text-surface-500 hover:text-white hover:bg-white/5'
-                )}
-              >
-                {link.label}
-              </Link>
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl transition-all whitespace-nowrap',
+                    pathname === link.href
+                      ? 'bg-primary-500/15 text-primary-400 shadow-sm shadow-primary-500/5'
+                      : 'text-surface-500 hover:text-white hover:bg-white/5'
+                  )}
+                >
+                  {link.emoji && <span>{link.emoji}</span>}
+                  {link.label}
+                </Link>
             ))}
           </div>
 
@@ -119,7 +122,18 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-4 mt-4 border-t border-white/5">
+            <div className="pt-3 mt-3 border-t border-white/5">
+              <p className="text-xs text-surface-500 px-4 mb-2 font-semibold uppercase tracking-wider">Competiciones</p>
+              <div className="space-y-0.5">
+                <Link href="/libertadores" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-surface-400 hover:text-white rounded-lg hover:bg-white/5">
+                  <span>🏆</span> Copa Libertadores
+                </Link>
+                <Link href="/selecciones" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-surface-400 hover:text-white rounded-lg hover:bg-white/5">
+                  <span>🇦🇷</span> Selecciones Argentinas
+                </Link>
+              </div>
+            </div>
+            <div className="pt-3 mt-3 border-t border-white/5">
               <p className="text-xs text-surface-500 px-4 mb-2 font-semibold uppercase tracking-wider">Divisiones</p>
               <div className="space-y-0.5">
                 {leagues.map((l) => (

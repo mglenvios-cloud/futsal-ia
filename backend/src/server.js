@@ -52,6 +52,8 @@ app.use('/api/videos', require('./routes/videos'));
 app.use('/api/h2h', require('./routes/h2h'));
 app.use('/api/auth', require('./routes/auth')());
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/libertadores', require('./routes/libertadores'));
+app.use('/api/selecciones', require('./routes/selecciones'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });

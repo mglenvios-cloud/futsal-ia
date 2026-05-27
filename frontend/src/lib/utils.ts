@@ -20,6 +20,21 @@ export function getLeagueName(slug: string): string {
   return names[slug] || slug;
 }
 
+export function getLeagueNameShort(slug: string): string {
+  const names: Record<string, string> = {
+    'primera-a': '1ª A',
+    'primera-b': '1ª B',
+    'primera-c': '1ª C',
+    'primera-d-za': '1ª D ZA',
+    'primera-d-zb': '1ª D ZB',
+    'femenino-a': 'Fem A',
+    'femenino-b': 'Fem B',
+    'copa-argentina': 'Copa Arg',
+    'libertadores-futsal': 'Lib.',
+  };
+  return names[slug] || slug;
+}
+
 export const LEAGUE_SLUGS = [
   'primera-a',
   'primera-b',
