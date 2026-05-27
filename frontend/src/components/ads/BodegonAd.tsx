@@ -11,7 +11,7 @@ export function BodegonAd() {
       <div className="relative flex items-stretch bg-gradient-to-r from-orange-600/10 via-orange-500/5 to-orange-600/10">
         <div className="flex-shrink-0 w-24 sm:w-32 md:w-40 overflow-hidden">
           <img
-            src="/images/bodegon.jpg"
+            src="/images/bodegon-1.jpg"
             alt="Bodegón de Bebidas"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
