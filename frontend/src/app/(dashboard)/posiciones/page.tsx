@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { StandingsTable } from '@/components/teams/StandingsTable';
+import { BodegonAd } from '@/components/ads/BodegonAd';
 import { cn, getLeagueName } from '@/lib/utils';
 
 const LEAGUES = [
@@ -82,6 +83,11 @@ export default function PosicionesPage() {
             <StandingsTable standings={standings} />
           </div>
         )}
+      </div>
+
+      <div>
+        <p className="text-[10px] text-surface-600 uppercase tracking-widest mb-2">Publicidad</p>
+        <BodegonAd large />
       </div>
     </div>
   );

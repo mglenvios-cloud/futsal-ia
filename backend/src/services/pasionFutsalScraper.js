@@ -159,6 +159,9 @@ async function scrapeMatches() {
       }
     }
 
+    const eventDate = event.date ? event.date.split('T')[0] : null;
+    const eventTime = event.date ? event.date.split('T')[1]?.substring(0, 5) : null;
+
     const match = {
       source_id: `pf-${event.id}`,
       source: 'pasionfutsal',
@@ -168,7 +171,8 @@ async function scrapeMatches() {
       home_score: homeScore,
       away_score: awayScore,
       status: homeScore !== null ? 'finished' : 'scheduled',
-      date: dateMatch,
+      date: eventDate,
+      time: eventTime,
       round: event.day || null,
       stream_link: 'https://lpfplay.com/',
     };

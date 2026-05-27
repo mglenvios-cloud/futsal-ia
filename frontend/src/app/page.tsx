@@ -213,6 +213,21 @@ export default function HomePage() {
             </section>
           )}
 
+          {/* Resultados Recientes — ARRIBA antes que Transmisiones */}
+          {recentResults.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 border border-green-500/20 flex items-center justify-center text-base">✅</div>
+                  <h2 className="text-lg font-bold uppercase tracking-widest">Resultados</h2>
+                  <span className="text-xs text-surface-500">({recentResults.length})</span>
+                </div>
+                <Link href="/partidos" className="text-xs text-orange-400 hover:text-orange-300">Ver todos →</Link>
+              </div>
+              <div className="grid gap-2">{recentResults.map((match: any) => <MatchCard key={match.id} match={match} />)}</div>
+            </section>
+          )}
+
           {/* 📺 Transmisiones — LPF Play y YouTube */}
           {streamMatches.length > 0 && (
             <section>
@@ -236,21 +251,6 @@ export default function HomePage() {
                   Ver todos los partidos con transmisión →
                 </Link>
               )}
-            </section>
-          )}
-
-          {/* Resultados Recientes */}
-          {recentResults.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 border border-green-500/20 flex items-center justify-center text-base">✅</div>
-                  <h2 className="text-lg font-bold uppercase tracking-widest">Resultados</h2>
-                  <span className="text-xs text-surface-500">({recentResults.length})</span>
-                </div>
-                <Link href="/partidos" className="text-xs text-orange-400 hover:text-orange-300">Ver todos →</Link>
-              </div>
-              <div className="grid gap-2">{recentResults.map((match: any) => <MatchCard key={match.id} match={match} />)}</div>
             </section>
           )}
 

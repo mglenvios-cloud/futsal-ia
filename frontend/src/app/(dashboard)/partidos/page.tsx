@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { api } from '@/lib/api';
 import { MatchCard } from '@/components/matches/MatchCard';
+import { BodegonAd } from '@/components/ads/BodegonAd';
 import { cn, getLeagueName, formatDate } from '@/lib/utils';
 
 const LEAGUES = [
@@ -9,14 +10,15 @@ const LEAGUES = [
   'femenino-a', 'femenino-b', 'copa-argentina',
 ];
 
-function groupByDate(matches: any[]) {
+function groupByLeague(matches: any[]) {
   const groups: Record<string, any[]> = {};
   matches.forEach(m => {
-    const key = m.date || 'sin-fecha';
+    const key = m.league || 'sin-liga';
     if (!groups[key]) groups[key] = [];
     groups[key].push(m);
   });
-  return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+  const order = ['primera-a','primera-b','primera-c','primera-d-za','primera-d-zb','femenino-a','femenino-b','copa-argentina'];
+  return Object.entries(groups).sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]));
 }
 
 export default function PartidosPage() {
@@ -45,7 +47,7 @@ export default function PartidosPage() {
     load();
   }, [tab, filter]);
 
-  const grouped = useMemo(() => groupByDate(matches), [matches]);
+  const grouped = useMemo(() => groupByLeague(matches), [matches]);
 
   return (
     <div className="space-y-6">
@@ -72,16 +74,24 @@ export default function PartidosPage() {
       ) : matches.length === 0 ? (
         <div className="card p-12 text-center"><p className="text-4xl mb-4">📅</p><p className="text-surface-400">No hay partidos disponibles</p></div>
       ) : (
-        <div className="space-y-6">
-          {grouped.map(([date, dayMatches]) => (
-            <div key={date}>
-              <h3 className="text-sm font-bold text-surface-500 uppercase tracking-wider mb-3 border-b border-white/[0.06] pb-2">
-                {date === 'sin-fecha' ? 'Sin fecha' : formatDate(date)}
-              </h3>
+        <div className="space-y-8">
+          {grouped.map(([league, leagueMatches], li) => (
+            <section key={league}>
+              <h2 className="text-lg font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-orange-500" />
+                {getLeagueName(league)}
+                <span className="text-xs text-surface-500 font-normal">({leagueMatches.length})</span>
+              </h2>
               <div className="grid gap-2">
-                {dayMatches.map((match: any) => <MatchCard key={match.id} match={match} />)}
+                {leagueMatches.map((match: any) => <MatchCard key={match.id} match={match} />)}
               </div>
-            </div>
+              {li === 0 && (
+                <div className="my-4">
+                  <p className="text-[10px] text-surface-600 uppercase tracking-widest mb-2">Publicidad</p>
+                  <BodegonAd />
+                </div>
+              )}
+            </section>
           ))}
         </div>
       )}
