@@ -173,8 +173,13 @@ export default function HomePage() {
     <div className="space-y-6">
       <SearchBar />
 
-      {/* Banner publicitario top — leaderboard */}
-      <AdBanner size="leaderboard" />
+      {/* Banner publicitario top — Bodegón de Bebidas */}
+      <AdBanner
+        size="leaderboard"
+        imageUrl="/images/bodegon-1.jpg"
+        linkUrl="https://www.instagram.com/bodegondebebidas/"
+        label="Bodegón de Bebidas"
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
