@@ -126,6 +126,7 @@ export default function HomePage() {
   const [todayMatches, setTodayMatches] = useState([]);
   const [upcoming, setUpcoming] = useState([]);
   const [streamMatches, setStreamMatches] = useState([]);
+  const [recentResults, setRecentResults] = useState([]);
   const [standings, setStandings] = useState([]);
   const [selectedLeague, setSelectedLeague] = useState('primera-a');
   const [loading, setLoading] = useState(true);
@@ -133,16 +134,20 @@ export default function HomePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [liveRes, todayRes, upcomingRes, streamRes] = await Promise.all([
+        const [liveRes, todayRes, upcomingRes, streamRes, allRes] = await Promise.all([
           api.matches.live().catch(() => ({ live: [], today: [], upcoming: [] })),
           api.matches.today().catch(() => []),
           api.matches.upcoming(10).catch(() => []),
           api.matches.stream(50).catch(() => []),
+          api.matches.list({ limit: 100 }).catch(() => ({ data: [] })),
         ]);
         setLiveMatches(liveRes.live || []);
         setTodayMatches(todayRes || []);
         setUpcoming(upcomingRes || []);
         setStreamMatches(Array.isArray(streamRes) ? streamRes : []);
+        const all = allRes.data || allRes || [];
+        const finished = Array.isArray(all) ? all.filter((m: any) => m.status === 'finished' && m.home_score != null && m.away_score != null).slice(0, 8) : [];
+        setRecentResults(finished);
       } catch (err) { console.error('Error loading dashboard:', err); }
       setLoading(false);
     }
@@ -212,6 +217,21 @@ export default function HomePage() {
             </section>
           )}
 
+          {/* Resultados Recientes */}
+          {recentResults.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 border border-green-500/20 flex items-center justify-center text-base">✅</div>
+                  <h2 className="text-lg font-bold uppercase tracking-widest">Resultados</h2>
+                  <span className="text-xs text-surface-500">({recentResults.length})</span>
+                </div>
+                <Link href="/partidos" className="text-xs text-orange-400 hover:text-orange-300">Ver todos →</Link>
+              </div>
+              <div className="grid gap-2">{recentResults.map((match: any) => <MatchCard key={match.id} match={match} />)}</div>
+            </section>
+          )}
+
           {/* Banner entre secciones */}
           <div className="mb-2">
             <p className="text-[10px] text-surface-600 uppercase tracking-widest mb-2">Publicidad</p>
@@ -269,7 +289,7 @@ export default function HomePage() {
           {/* Banner sidebar — Bodegón */}
           <div>
             <p className="text-[10px] text-surface-600 uppercase tracking-widest mb-2">Publicidad</p>
-            <BodegonAd />
+            <BodegonAd large />
           </div>
 
           {/* Chat IA */}
