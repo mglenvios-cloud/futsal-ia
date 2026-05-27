@@ -38,7 +38,7 @@ export default function PartidosPage() {
           const params = filter !== 'all' ? { league: filter, limit: 200 } : { limit: 200 };
           data = await api.matches.list(params);
           data = data.data || [];
-          data = data.filter((m: any) => m.status === 'finished' && m.home_score != null && m.away_score != null);
+          data = data.filter((m: any) => m.status === 'finished');
         }
         setMatches(Array.isArray(data) ? data : []);
       } catch { setMatches([]); }

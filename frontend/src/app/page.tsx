@@ -146,7 +146,7 @@ export default function HomePage() {
         setUpcoming(upcomingRes || []);
         setStreamMatches(Array.isArray(streamRes) ? streamRes : []);
         const all = allRes.data || allRes || [];
-        const finished = Array.isArray(all) ? all.filter((m: any) => m.status === 'finished' && m.home_score != null && m.away_score != null).slice(0, 8) : [];
+        const finished = Array.isArray(all) ? all.filter((m: any) => m.status === 'finished').slice(0, 8) : [];
         setRecentResults(finished);
       } catch (err) { console.error('Error loading dashboard:', err); }
       setLoading(false);
