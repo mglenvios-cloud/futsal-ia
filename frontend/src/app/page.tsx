@@ -174,12 +174,34 @@ export default function HomePage() {
       <SearchBar />
 
       {/* Banner publicitario top — Bodegón de Bebidas */}
-      <AdBanner
-        size="leaderboard"
-        imageUrl="/images/bodegon-1.jpg"
-        linkUrl="https://www.instagram.com/bodegondebebidas/"
-        label="Bodegón de Bebidas"
-      />
+      <a
+        href="https://www.instagram.com/bodegondebebidas/"
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        className="group block w-full rounded-xl overflow-hidden border border-white/[0.06] shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-orange-600/10 via-orange-500/5 to-orange-600/10"
+      >
+        <div className="flex items-center gap-4 p-3">
+          <div className="flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden">
+            <img
+              src="/images/bodegon-1.jpg"
+              alt="Bodegón de Bebidas"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="text-base sm:text-lg font-bold text-white truncate">Bodegón de Bebidas</p>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white text-[10px] font-medium whitespace-nowrap">@bodegondebebidas</span>
+            </div>
+            <p className="text-xs text-surface-400">Distribuidora de Bebidas y Yerbas</p>
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-surface-500">
+              <span>📦 Venta mayorista y minorista</span>
+              <span>📍 Envíos a todo el país</span>
+              <span>⏱️ Atención personalizada</span>
+            </div>
+          </div>
+        </div>
+      </a>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
